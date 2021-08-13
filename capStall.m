@@ -968,7 +968,7 @@ Data.Graph = Graph;
 Data.Graph.segInfo = nodeGrps_vesSegment(Data.Graph.nodes, Data.Graph.edges);
 % n_frames = size(Data.I,3); 
 [bX,bY,n_frames] = size(Data.I);
-for vv = 6 %1:size(Data.Cap,1)
+for vv = 1:size(Data.Cap,1)
     vv
     dist = sqrt(sum((Data.Graph.nodes(:,1:2)-[Data.Cap(vv,2) Data.Cap(vv,1)]).^2,2));
     [min_dist,min_idx] = min(dist);
