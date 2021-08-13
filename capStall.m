@@ -242,29 +242,48 @@ hold off
 axis image;
 % set(h2, 'ButtonDownFcn', {@axes2_ButtonDown, handles});
 
-if isfield(Data,'Int_ts')
+if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
+    
     jj = str2double(get(handles.edit_segno,'string'));
     axes(handles.axes3)
-    hp = plot(Data.Int_ts(jj,:));
+    hp = imagesc(Data.seg(jj).LRimage');
+    axis image
     hold on
-    y = ylim;
-    x = [ii ii];
-    line(x,y);
-    if isfield(Data,'StallingPts')
-        for uu = 1:length(Data.StallingPts(jj).pos)
-            xpt = Data.StallingPts(jj).pos(uu);
-            ypt = Data.Int_ts(jj,xpt);
-            text(xpt,ypt,'*');
-        end
-    end
+    x = xlim;
+    y = [ii ii];
+    line(x,y, 'LineWidth', 1, 'Color','red');
     if isfield(Data,'StallingMatrix')
         xidx = find(Data.StallingMatrix(jj,:) == 1);
-        yidx = Data.Int_ts(jj,xidx);
-        text(xidx,yidx,'*');
+        yidx = size(Data.seg(jj).LRimage,1)/2*ones(1,length(xidx));
+        text(yidx,xidx,'*','Color','red','FontSize',10);
     end
     hold off
-    ylim(y);
+    
     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
+    
+    
+%     jj = str2double(get(handles.edit_segno,'string'));
+%     axes(handles.axes3)
+%     hp = plot(Data.Int_ts(jj,:));
+%     hold on
+%     y = ylim;
+%     x = [ii ii];
+%     line(x,y);
+%     if isfield(Data,'StallingPts')
+%         for uu = 1:length(Data.StallingPts(jj).pos)
+%             xpt = Data.StallingPts(jj).pos(uu);
+%             ypt = Data.Int_ts(jj,xpt);
+%             text(xpt,ypt,'*');
+%         end
+%     end
+%     if isfield(Data,'StallingMatrix')
+%         xidx = find(Data.StallingMatrix(jj,:) == 1);
+%         yidx = Data.Int_ts(jj,xidx);
+%         text(xidx,yidx,'*');
+%     end
+%     hold off
+%     ylim(y);
+%     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
 end
 
 Data.handles =  handles;
@@ -949,7 +968,7 @@ Data.Graph = Graph;
 Data.Graph.segInfo = nodeGrps_vesSegment(Data.Graph.nodes, Data.Graph.edges);
 % n_frames = size(Data.I,3); 
 [bX,bY,n_frames] = size(Data.I);
-for vv = 1:size(Data.Cap,1)
+for vv = 6 %1:size(Data.Cap,1)
     vv
     dist = sqrt(sum((Data.Graph.nodes(:,1:2)-[Data.Cap(vv,2) Data.Cap(vv,1)]).^2,2));
     [min_dist,min_idx] = min(dist);
@@ -967,12 +986,24 @@ for vv = 1:size(Data.Cap,1)
     min_y = min(max(min_seg_y-7,1),bX);
     max_y = min(max(max_seg_y+7,1),bX);
     mean_cropped_image = squeeze(Data.Volume(1,min_x:max_x,min_y:max_y));
+    if max_x-min_x+1 < 16
+        mean_cropped_image = [mean_cropped_image; zeros(15-(max_x-min_x), size(mean_cropped_image,2))];
+    end
+    if max_y-min_y+1 < 16
+        mean_cropped_image = [mean_cropped_image zeros(size(mean_cropped_image,1), 15-(max_y-min_y))];
+    end
     [optimizer, metric] = imregconfig('monomodal');
     LRimage = zeros(size(seg(vv).pos,1),n_frames);
     for ww =1:n_frames
 %         ww
         frame_cropped_image = Data.I(min_x:max_x,min_y:max_y,ww);
         current_frame = squeeze(Data.I(:,:,ww));
+        if max_x-min_x+1 < 16
+            frame_cropped_image = [frame_cropped_image; zeros(15-(max_x-min_x), size(frame_cropped_image,2))];
+        end
+        if max_y-min_y+1 < 16
+            frame_cropped_image = [frame_cropped_image zeros(size(frame_cropped_image,1), 15-(max_y-min_y))];
+        end
         tform = imregtform(mean_cropped_image', frame_cropped_image', 'rigid', optimizer, metric);
         mean_seg_pos = [seg(vv).pos(:,2)-min_x seg(vv).pos(:,1)-min_y seg(vv).pos(:,3)];
         [points_x, points_y] = transformPointsForward(tform,mean_seg_pos(:,1),mean_seg_pos(:,2));
