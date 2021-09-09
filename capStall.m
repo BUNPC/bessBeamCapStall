@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 04-Sep-2019 10:23:44
+% Last Modified by GUIDE v2.5 08-Sep-2021 11:16:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -97,6 +97,9 @@ if exist('Data','var')
 end
 
 [filename,pathname] = uigetfile({'*.mat;*.tiff;*.tif'},'Please select the Angiogram Data');
+if filename == 0
+    return
+end
 h = waitbar(0,'Please wait... loading the data');
 [~,~,ext] = fileparts(filename);
 
@@ -123,7 +126,7 @@ Data.pathname = pathname;
 Data.I = permute(angio,[2 3 1]);
 Data.Volume = mean(angio,1);
 Vz = size(Data.Volume,1);
-z = size(Data.I,3);
+[Sx, Sy, Sz] = size(Data.I);
 
 % pathname = uigetdir('Slect directory for loading data');
 % Data.pathname = pathname;
@@ -142,10 +145,17 @@ z = size(Data.I,3);
 % Data.Volume = angio;
 % Vz = size(Data.Volume,1);
 
-set(handles.slider_movedata,'max',z);
+set(handles.edit_Xmin,'String',num2str(1));
+set(handles.edit_Ymin,'String',num2str(1));
+set(handles.edit_Xmax,'String',num2str(Sx));
+set(handles.edit_Ymax,'String',num2str(Sy));
+set(handles.text_Xrange,'String',['Xrange(1-' num2str(Sx) ')']);
+set(handles.text_Yrange,'String',['Yrange(1-' num2str(Sy) ')']);
+
+set(handles.slider_movedata,'max',Sz);
 set(handles.slider_movedata,'min',1);
 set(handles.slider_movedata,'Value',1);
-set(handles.slider_movedata,'SliderStep',[1/(z-1), 10/(z-1)]);
+set(handles.slider_movedata,'SliderStep',[1/(Sz-1), 10/(Sz-1)]);
 
 set(handles.edit_MIPstartidx,'String',num2str(1));
 set(handles.edit_MIPnofframes,'String',num2str(Vz));
@@ -168,6 +178,11 @@ I = Data.I;
 ii = str2double(get(handles.edit_volnumber,'string'));
 MinI = str2double(get(handles.edit_MinI,'String'));
 MaxI = str2double(get(handles.edit_MaxI,'String'));
+Xmin = max(str2double(get(handles.edit_Xmin,'String')),1);
+Ymin = max(str2double(get(handles.edit_Ymin,'String')),1);
+Xmax = str2double(get(handles.edit_Xmax,'String'));
+Ymax = str2double(get(handles.edit_Ymax,'String'));
+
 if isfield(Data,'Int_ts')
     cseg = str2double(get(handles.edit_segno,'string'));
 else 
@@ -179,20 +194,24 @@ set(handles.text2,'String',['to ' num2str(startidx+endidx-1) ' spanning']);
 axes(handles.axes1)
 colormap('gray');
 h = imagesc(I(:,:,ii),[MinI MaxI]);
+axis image;
+xlim([Xmin Xmax])
+ylim([Ymin Ymax])
 hold on
 if isfield(Data,'Cap')
     for u = 1:size(Data.Cap,1)
-        if u == cseg
-            hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','b','FontSize',10);
-        else
-            hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
+        if Data.Cap(u,2) >= Xmin & Data.Cap(u,2) <= Xmax & Data.Cap(u,1) >= Ymin & Data.Cap(u,1) <= Ymax
+            if u == cseg
+                hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','r','FontSize',10);
+            else
+                hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
+            end
+            set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
         end
-        set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
     end
 end
 hold off
-axis image;
-set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles});
+set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles},'BusyAction','cancel');
 set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
 set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
 
@@ -455,6 +474,13 @@ if (axis1pos(1) >=1 && axis1pos(1) <= I_x && axis1pos(2) >=1 && axis1pos(2) <= I
         set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
         set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
     end  
+    Xmin = str2double(get(handles.edit_Xmin,'String'));
+    Ymin = str2double(get(handles.edit_Ymin,'String'));
+    Xmax = str2double(get(handles.edit_Xmax,'String'));
+    Ymax = str2double(get(handles.edit_Ymax,'String'));
+    xlim([Xmin Xmax])
+    ylim([Ymin Ymax])
+    
     if isfield(Data,'sliderobject')
         uicontrol(Data.sliderobject);
     end
@@ -1427,6 +1453,9 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
+if get(handles.checkbox_segmentZoomIn,'Value')
+    update_zoom_with_segno(jj, handles)
+end
 draw(hObject, eventdata, handles);
 
 
@@ -1453,6 +1482,9 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj-1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
+if get(handles.checkbox_segmentZoomIn,'Value')
+    update_zoom_with_segno(jj, handles)
+end
 draw(hObject, eventdata, handles);
 
 
@@ -1466,7 +1498,35 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj+1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
+if get(handles.checkbox_segmentZoomIn,'Value')
+    update_zoom_with_segno(jj, handles)
+end
 draw(hObject, eventdata, handles);
+
+
+function update_zoom_with_segno(seg_no, handles)
+
+global Data
+
+[Sx, Sy, ~] = size(Data.I);
+seg_pos = Data.seg(seg_no).pos;
+deltaX = str2double(get(handles.edit_deltaX,'String'));
+deltaY = str2double(get(handles.edit_deltaY,'String'));
+Xmin = min(seg_pos(:,1))-deltaX;
+Xmax = max(seg_pos(:,1))+deltaX;
+Ymin = min(seg_pos(:,2))-deltaY;
+Ymax = max(seg_pos(:,2))+deltaY;
+
+Xmin = min(max(Xmin,1),Sx);
+Xmax = min(max(Xmax,Xmin+1),Sx);
+Ymin = min(max(Ymin,1),Sy);
+Ymax = min(max(Ymax,Ymin+1),Sy);
+
+set(handles.edit_Xmin,'String',num2str(Xmin))
+set(handles.edit_Xmax,'String',num2str(Xmax))
+set(handles.edit_Ymin,'String',num2str(Ymin))
+set(handles.edit_Ymax,'String',num2str(Ymax))
+
 
 
 % --- Executes on button press in radiobutton_showseg.
@@ -1549,6 +1609,9 @@ function menu_loadResults_Callback(hObject, eventdata, handles)
 global Data
 
 [filename, pathname] = uigetfile;
+if filename == 0
+    return
+end
 temp_struct = load([pathname filename]);
 if isfield(temp_struct,'Cap')
     Data.Cap = temp_struct.Cap;
@@ -1597,4 +1660,231 @@ end
 if isfield(Data,'StallingMatrix')
     StallingMatrix = Data.StallingMatrix;
     save([pathname filename],'StallingMatrix','-append');
+end
+
+
+
+function edit_Xmin_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_Xmin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_Xmin as text
+%        str2double(get(hObject,'String')) returns contents of edit_Xmin as a double
+
+global Data
+
+[Sx,~, ~] = size(Data.I);
+Xmin = str2double(get(hObject,'String'));
+Xmin = min(max(Xmin,1),Sx);
+set(handles.edit_Xmin,'String',num2str(Xmin))
+draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Xmin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Xmin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_Xmax_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_Xmax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_Xmax as text
+%        str2double(get(hObject,'String')) returns contents of edit_Xmax as a double
+global Data
+
+[Sx,~, ~] = size(Data.I);
+Xmin = str2double(get(handles.edit_Xmin,'String'));
+Xmax = str2double(get(hObject,'String'));
+Xmax = min(max(Xmax,Xmin+1),Sx);
+set(handles.edit_Xmax,'String',num2str(Xmax))
+draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Xmax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Xmax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_Ymin_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_Ymin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_Ymin as text
+%        str2double(get(hObject,'String')) returns contents of edit_Ymin as a double
+
+global Data
+
+[~,Sy, ~] = size(Data.I);
+Ymin = str2double(get(hObject,'String'));
+Ymin = min(max(Ymin,1),Sy);
+set(handles.edit_Ymin,'String',num2str(Ymin))
+
+draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Ymin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Ymin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_Ymax_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_Ymax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_Ymax as text
+%        str2double(get(hObject,'String')) returns contents of edit_Ymax as a double
+
+global Data
+
+[~,Sy, ~] = size(Data.I);
+Ymin = str2double(get(handles.edit_Ymin,'String'));
+Ymax = str2double(get(hObject,'String'));
+Ymax = min(max(Ymax,Ymin+1),Sy);
+set(handles.edit_Ymax,'String',num2str(Ymax))
+
+draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Ymax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Ymax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton_selectZoomInArea.
+function pushbutton_selectZoomInArea_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_selectZoomInArea (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+
+[Sx, Sy, ~] = size(Data.I);
+k = waitforbuttonpress;
+if k==0
+    point1 = get(handles.axes1,'CurrentPoint');     % button down detected
+    finalRect = rbbox;                              % return figure units
+    point2 = get(handles.axes1,'CurrentPoint');     % button up detected
+    point1 = point1(1,1:2);                          % extract x and y
+    point2 = point2(1,1:2);
+end
+Xmin = round(min(point1(1,1), point2(1,1)));
+Xmax = round(max(point1(1,1), point2(1,1)));
+Ymin = round(min(point1(1,2), point2(1,2)));
+Ymax = round(max(point1(1,2), point2(1,2)));
+
+Xmin = min(max(Xmin,1),Sx);
+Xmax = min(max(Xmax,Xmin+1),Sx);
+Ymin = min(max(Ymin,1),Sy);
+Ymax = min(max(Ymax,Ymin+1),Sy);
+
+set(handles.edit_Xmin,'String',num2str(Xmin))
+set(handles.edit_Xmax,'String',num2str(Xmax))
+set(handles.edit_Ymin,'String',num2str(Ymin))
+set(handles.edit_Ymax,'String',num2str(Ymax))
+draw(hObject, eventdata, handles)
+
+% --- Executes on button press in pushbutton_resetZoom.
+function pushbutton_resetZoom_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_resetZoom (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+set(handles.edit_Xmin,'String',num2str(1))
+set(handles.edit_Xmax,'String',num2str(size(Data.I,1)))
+set(handles.edit_Ymin,'String',num2str(1))
+set(handles.edit_Ymax,'String',num2str(size(Data.I,2)))
+draw(hObject, eventdata, handles)
+
+
+% --- Executes on button press in checkbox_segmentZoomIn.
+function checkbox_segmentZoomIn_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_segmentZoomIn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_segmentZoomIn
+
+
+
+function edit_deltaX_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_deltaX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_deltaX as text
+%        str2double(get(hObject,'String')) returns contents of edit_deltaX as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_deltaX_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_deltaX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_deltaY_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_deltaY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_deltaY as text
+%        str2double(get(hObject,'String')) returns contents of edit_deltaY as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_deltaY_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_deltaY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end

@@ -27,7 +27,7 @@ if strcmp(answer,'Yes')
     handles = Data.handles;
     hObject = Data.hObject;
     eventdata = Data.eventdata;
-    Cap_Stall('draw',hObject,eventdata,handles);
+    capStall('draw',hObject,eventdata,handles);
     if isfield(Data,'sliderobject')
         uicontrol(Data.sliderobject);
     end
