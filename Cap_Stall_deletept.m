@@ -9,6 +9,7 @@ if strcmp(answer,'Yes')
             Data.pts(idx,:) = [];
         end
     end
+    
 %     if isfield(Data,pts1)
 %         if size(Data.pts1,1) >= idx
 %             Data.pts1(idx,:) = [];
@@ -24,6 +25,44 @@ if strcmp(answer,'Yes')
 %             Data.pts3(idx,:) = [];
 %         end
 %     end
+    % delete column for that capillary in the autoStallingMatrix
+    if isfield(Data,'AutoStallingMatrix')
+        if size(Data.AutoStallingMatrix,1) >= idx
+            Data.AutoStallingMatrix(idx,:) = [];
+        end
+    end
+    
+    % delete column for that capillary in the StallingMatrix
+    if isfield(Data,'StallingMatrix')
+        if size(Data.AutoStallingMatrix,1) >= idx
+            Data.StallingMatrix(idx,:) = [];
+        end
+    end
+    
+    if isfield(Data,'seg')
+        if size(Data.seg,1) >= idx
+            Data.seg(:,idx) = [];
+        end
+    end
+    
+    if isfield(Data,'Cap')
+        if size(Data.Cap,1) >= idx
+            Data.Cap(idx,:) = [];
+        end
+    end
+    
+    if isfield(Data,'Int_ts')
+        if size(Data.Int_ts,1) >= idx
+            Data.Int_ts(idx,:) = [];
+        end
+    end
+    
+    if isfield(Data,'GTStallingMatrix')
+        if size(Data.GTStallingMatrix,1) >= idx
+            Data.GTStallingMatrix(idx,:) = [];
+        end
+    end
+    
     handles = Data.handles;
     hObject = Data.hObject;
     eventdata = Data.eventdata;
