@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 08-Sep-2021 11:16:18
+% Last Modified by GUIDE v2.5 15-Sep-2021 10:42:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -215,6 +215,36 @@ set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles},'BusyAction','cancel');
 set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
 set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
 
+msg_display = '';
+if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
+    if isfield(Data,'seg')
+        seg_no = str2double(get(handles.edit_segno,'string'));
+        frame_no = str2double(get(handles.edit_volnumber,'string'));
+        if isfield(Data,'StallingMatrix')
+            if Data.StallingMatrix(seg_no,frame_no) == 1
+                msg_display = sprintf('%sHuman: Stall \n', msg_display);
+            else
+                msg_display = sprintf('%sHuman: Not a Stall \n', msg_display);
+            end
+        end
+        if isfield(Data,'AutoStallingMatrix')
+            if Data.AutoStallingMatrix(seg_no,frame_no) == 1
+                msg_display = sprintf('%sAuto: Stall\n', msg_display);
+            else
+                msg_display = sprintf('%sAuto: Not a Stall\n', msg_display);
+            end
+        end
+        if isfield(Data,'GTStallingMatrix')
+            if Data.GTStallingMatrix(seg_no,frame_no) == 1
+                msg_display = sprintf('%sGT: Stall\n', msg_display);
+            else
+                msg_display = sprintf('%sGT: Not a Stall\n', msg_display);
+            end
+        end
+    end
+end
+set(handles.text_stallinfo,'String',msg_display, 'fontsize', 10)
+
 axes(handles.axes2)
 colormap('gray');
 h2 = imagesc(squeeze(max(Data.Volume(startidx:startidx+endidx-1,:,:),[],1)),[MinI MaxI]);
@@ -270,11 +300,22 @@ if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
     hold on
     x = xlim;
     y = [ii ii];
-    line(x,y, 'LineWidth', 1, 'Color','red');
+    line(x,y, 'LineWidth', 1, 'Color','white');
     if isfield(Data,'StallingMatrix')
         xidx = find(Data.StallingMatrix(jj,:) == 1);
         yidx = size(Data.seg(jj).LRimage,1)/2*ones(1,length(xidx));
         text(yidx,xidx,'*','Color','red','FontSize',10);
+    end
+    if isfield(Data,'AutoStallingMatrix')
+        xidx = find(Data.AutoStallingMatrix(jj,:) == 1);
+        yidx = size(Data.seg(jj).LRimage,1)/3*ones(1,length(xidx));
+        text(yidx,xidx,'*','Color','green','FontSize',10);
+    end
+    
+    if isfield(Data,'GTStallingMatrix')
+        xidx = find(Data.GTStallingMatrix(jj,:) == 1);
+        yidx = size(Data.seg(jj).LRimage,1)/1.5*ones(1,length(xidx));
+        text(yidx,xidx,'*','Color','yellow','FontSize',10);
     end
     hold off
     
@@ -403,7 +444,7 @@ if isfield(Data,'Int_ts')
 else 
     cseg = 0;
 end
-if  (axis3pos(1) >=a3x(1) && axis3pos(1) <= a3x(2) && axis3pos(2) >=a3y(1) && axis3pos(2) <=a3y(2))
+% if  (axis3pos(1) >=a3x(1) && axis3pos(1) <= a3x(2) && axis3pos(2) >=a3y(1) && axis3pos(2) <=a3y(2))
     if eventdata.VerticalScrollCount > 0
         ii = str2num(get(handles.edit_volnumber,'string'));
         ii = min(max(ii+1,1),size(Data.I,3));
@@ -417,104 +458,104 @@ if  (axis3pos(1) >=a3x(1) && axis3pos(1) <= a3x(2) && axis3pos(2) >=a3y(1) && ax
         set(handles.slider_movedata,'Value',ii);
     end
     draw(hObject, eventdata, handles);
-    return
-end
-if (axis1pos(1) >=1 && axis1pos(1) <= I_x && axis1pos(2) >=1 && axis1pos(2) <= I_y)
-    MinI = str2double(get(handles.edit_MinI,'String'));
-    MaxI = str2double(get(handles.edit_MaxI,'String'));
-    if eventdata.VerticalScrollCount > 0
-        ii = str2num(get(handles.edit_volnumber,'string'));
-        ii = min(max(ii+1,1),size(Data.I,3));
-        set(handles.edit_volnumber,'string',num2str(ii));
-        set(handles.slider_movedata,'Value',ii);
+%     return
+% end
+% if (axis1pos(1) >=1 && axis1pos(1) <= I_x && axis1pos(2) >=1 && axis1pos(2) <= I_y)
+%     MinI = str2double(get(handles.edit_MinI,'String'));
+%     MaxI = str2double(get(handles.edit_MaxI,'String'));
+%     if eventdata.VerticalScrollCount > 0
+%         ii = str2num(get(handles.edit_volnumber,'string'));
+%         ii = min(max(ii+1,1),size(Data.I,3));
+%         set(handles.edit_volnumber,'string',num2str(ii));
+%         set(handles.slider_movedata,'Value',ii);
+% %         draw(hObject, eventdata, handles);
+%         axes(handles.axes1)
+%         colormap('gray');
+%         h = imagesc(Data.I(:,:,ii),[MinI MaxI]);
+%         hold on
+%         if isfield(Data,'Cap')
+%             for u = 1:size(Data.Cap,1)
+%                 if u == cseg
+%                     hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','b','FontSize',10);
+%                 else
+%                     hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
+%                 end
+%                 set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
+%             end
+%         end
+%         hold off
+%         axis image;
+%         set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles});
+%         set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
+%         set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
+%     end  
+%     if eventdata.VerticalScrollCount < 0
+%         ii = str2num(get(handles.edit_volnumber,'string'));
+%         ii = min(max(ii-1,1),size(Data.I,3));
+%         set(handles.edit_volnumber,'string',num2str(ii));
+%         set(handles.slider_movedata,'Value',ii);
+% %         draw(hObject, eventdata, handles); 
+%         axes(handles.axes1)
+%         colormap('gray');
+%         h = imagesc(Data.I(:,:,ii),[MinI MaxI]);
+%         hold on
+%         if isfield(Data,'Cap')
+%             for u = 1:size(Data.Cap,1)
+%                 if u == cseg
+%                     hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','b','FontSize',10);
+%                 else
+%                     hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
+%                 end
+%                 set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
+%             end
+%         end
+%         hold off
+%         axis image;
+%         set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles});
+%         set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
+%         set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
+%     end  
+%     Xmin = str2double(get(handles.edit_Xmin,'String'));
+%     Ymin = str2double(get(handles.edit_Ymin,'String'));
+%     Xmax = str2double(get(handles.edit_Xmax,'String'));
+%     Ymax = str2double(get(handles.edit_Ymax,'String'));
+%     xlim([Xmin Xmax])
+%     ylim([Ymin Ymax])
+%     
+%     if isfield(Data,'sliderobject')
+%         uicontrol(Data.sliderobject);
+%     end
+% elseif axis2pos(1) >=1 && axis2pos(1) <= V_x && axis2pos(2) >=1 && axis2pos(2) <= V_y
+%     if eventdata.VerticalScrollCount > 0
+%         Vz = size(Data.Volume,1);
+%         ii = str2double(get(handles.edit_MIPstartidx,'String'));
+%         jj = str2double(get(handles.edit_MIPnofframes,'String'));
+%         ii = min(max(ii+1,1),Vz);
+%         jj = min(max(jj,1),Vz-ii+1);
+%         set(handles.edit_MIPstartidx,'String',num2str(ii));
+%         set(handles.edit_MIPnofframes,'String',num2str(jj));
+%         set(handles.slider_moveinZ,'Value',Vz-ii+1);
 %         draw(hObject, eventdata, handles);
-        axes(handles.axes1)
-        colormap('gray');
-        h = imagesc(Data.I(:,:,ii),[MinI MaxI]);
-        hold on
-        if isfield(Data,'Cap')
-            for u = 1:size(Data.Cap,1)
-                if u == cseg
-                    hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','b','FontSize',10);
-                else
-                    hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
-                end
-                set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
-            end
-        end
-        hold off
-        axis image;
-        set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles});
-        set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
-        set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
-    end  
-    if eventdata.VerticalScrollCount < 0
-        ii = str2num(get(handles.edit_volnumber,'string'));
-        ii = min(max(ii-1,1),size(Data.I,3));
-        set(handles.edit_volnumber,'string',num2str(ii));
-        set(handles.slider_movedata,'Value',ii);
-%         draw(hObject, eventdata, handles); 
-        axes(handles.axes1)
-        colormap('gray');
-        h = imagesc(Data.I(:,:,ii),[MinI MaxI]);
-        hold on
-        if isfield(Data,'Cap')
-            for u = 1:size(Data.Cap,1)
-                if u == cseg
-                    hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','b','FontSize',10);
-                else
-                    hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
-                end
-                set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
-            end
-        end
-        hold off
-        axis image;
-        set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles});
-        set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
-        set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
-    end  
-    Xmin = str2double(get(handles.edit_Xmin,'String'));
-    Ymin = str2double(get(handles.edit_Ymin,'String'));
-    Xmax = str2double(get(handles.edit_Xmax,'String'));
-    Ymax = str2double(get(handles.edit_Ymax,'String'));
-    xlim([Xmin Xmax])
-    ylim([Ymin Ymax])
-    
-    if isfield(Data,'sliderobject')
-        uicontrol(Data.sliderobject);
-    end
-elseif axis2pos(1) >=1 && axis2pos(1) <= V_x && axis2pos(2) >=1 && axis2pos(2) <= V_y
-    if eventdata.VerticalScrollCount > 0
-        Vz = size(Data.Volume,1);
-        ii = str2double(get(handles.edit_MIPstartidx,'String'));
-        jj = str2double(get(handles.edit_MIPnofframes,'String'));
-        ii = min(max(ii+1,1),Vz);
-        jj = min(max(jj,1),Vz-ii+1);
-        set(handles.edit_MIPstartidx,'String',num2str(ii));
-        set(handles.edit_MIPnofframes,'String',num2str(jj));
-        set(handles.slider_moveinZ,'Value',Vz-ii+1);
-        draw(hObject, eventdata, handles);
-    end
-    if eventdata.VerticalScrollCount < 0
-        Vz = size(Data.Volume,1);
-        ii = str2double(get(handles.edit_MIPstartidx,'String'));
-        jj = str2double(get(handles.edit_MIPnofframes,'String'));
-        ii = min(max(ii-1,1),Vz);
-        jj = min(max(jj,1),Vz-ii+1);
-        set(handles.edit_MIPstartidx,'String',num2str(ii));
-        set(handles.edit_MIPnofframes,'String',num2str(jj));
-        set(handles.slider_moveinZ,'Value',Vz-ii+1);
-        draw(hObject, eventdata, handles);
-    end
-    if isfield(Data,'sliderobjectZ')
-         uicontrol(Data.sliderobjectZ);
-    end
-end
-
-
-% pt1 = get(handles.axes1,'Position')
-
+%     end
+%     if eventdata.VerticalScrollCount < 0
+%         Vz = size(Data.Volume,1);
+%         ii = str2double(get(handles.edit_MIPstartidx,'String'));
+%         jj = str2double(get(handles.edit_MIPnofframes,'String'));
+%         ii = min(max(ii-1,1),Vz);
+%         jj = min(max(jj,1),Vz-ii+1);
+%         set(handles.edit_MIPstartidx,'String',num2str(ii));
+%         set(handles.edit_MIPnofframes,'String',num2str(jj));
+%         set(handles.slider_moveinZ,'Value',Vz-ii+1);
+%         draw(hObject, eventdata, handles);
+%     end
+%     if isfield(Data,'sliderobjectZ')
+%          uicontrol(Data.sliderobjectZ);
+%     end
+% end
+% 
+% 
+% % pt1 = get(handles.axes1,'Position')
+% 
 
 
 
@@ -883,10 +924,10 @@ angio_2(:,:,1) = Data.Volume_seg;
 vessel_mask = logical(angio_2);
 
 vessel_skl = bwskel(vessel_mask);
-%%
+
 vessel_graph = fun_skeleton_to_graph(vessel_skl);
 vessel_mask_dt = bwdist(~vessel_mask);
-%%
+
 
 % Size of the angiogram. It will help to convert indeces to subscripts
 angio_size = size(vessel_mask);
@@ -910,7 +951,7 @@ end
 %     
 % end
 edges_ind = zeros(edges_ind_count,2);
-%%
+
 % assign nodes and edges
 node_idx = 1;
 edge_idx = 1;
@@ -946,7 +987,7 @@ for u = 1:length(vessel_graph.node.cc_ind)
     end
     node_idx = node_idx+1;
 end
-%%
+
 idx = find(link_cc_ind == 0);
 for u = 1:length(idx)
     link_length = length(vessel_graph.link.cc_ind{idx(u)})
@@ -959,22 +1000,17 @@ for u = 1:length(idx)
     node_idx = node_idx+link_length;
 end
 
-%%
-
 % nodes = zeros(length(nodes_ind),3);
 [n1 n2 n3] = ind2sub(angio_size,nodes_ind);
 nodes =[n1' n2' n3'];
 edges = zeros(size(edges_ind));
-%%
+
 for u = 1:size(edges_ind,1)
     u
     edges(u,1) = find(nodes_ind == edges_ind(u,1));
     edges(u,2) = find(nodes_ind == edges_ind(u,2));
 end
 
-
-
-%%
 Graph.nodes = nodes;
 Graph.edges = edges;
 
@@ -1075,6 +1111,7 @@ end
 hold off
 axis image
 
+% StallingMatrix for manual annotation
 if isfield(Data,'StallingMatrix')
    Int_rows = size(Data.Int_ts,1);
    Stall_rows = size(Data.StallingMatrix,1);
@@ -1082,8 +1119,65 @@ if isfield(Data,'StallingMatrix')
    if Int_rows > Stall_rows
        Data.StallingMatrix = [Data.StallingMatrix; zeros([Int_rows-Stall_rows stall_cols])];
    end
+else
+   Data.StallingMatrix = zeros(length(seg),n_frames);
+end
+
+% Find stalls using cross correlation
+smoothFactor = 6;
+corrThresh = 0.6;
+Data.AutoStallingMatrix = zeros(length(seg),n_frames);
+for i = 1:length(seg)
+    crossVals = correlateLT(seg(i).LRimage,smoothFactor);
+    idx = crossVals>=corrThresh;
+    Data.AutoStallingMatrix(i,idx) = 1;
+end
+
+% create or update GT stalling matrix
+if isfield(Data,'GTStallingMatrix')
+    Int_rows = length(Data.seg);
+    Stall_rows = size(Data.GTStallingMatrix,1);
+    stall_cols = size(Data.GTStallingMatrix,2);
+    if Int_rows > Stall_rows
+       Data.GTStallingMatrix = [Data.GTStallingMatrix; zeros([Int_rows-Stall_rows stall_cols])];
+    end
+else
+    Data.GTStallingMatrix = zeros(length(seg),n_frames);
+    idx = find(Data.StallingMatrix == 1 & Data.AutoStallingMatrix==1);
+    Data.GTStallingMatrix(idx) = 1;
+end
+
+% create validation flag
+if isfield(Data,'ValidationFlag')
+    Int_rows = length(Data.seg);
+    Stall_rows = size(Data.ValidationFlag,1);
+    stall_cols = size(Data.ValidationFlag,2);
+    if Int_rows > Stall_rows
+       Data.ValidationFlag = [Data.ValidationFlag; zeros([Int_rows-Stall_rows stall_cols])];
+    end
+else
+    Data.ValidationFlag = zeros(length(seg),n_frames);
+    idx = find(Data.StallingMatrix == 1 & Data.AutoStallingMatrix==1);
+    Data.ValidationFlag(idx) = 1;
+    idx = find(Data.StallingMatrix == 0 & Data.AutoStallingMatrix==0);
+    Data.ValidationFlag(idx) = 1;
 end
 draw(hObject, eventdata, handles);
+
+function crossCorrVals = correlateLT(LRimage,smoothFactor)
+    LRimage_mean = mean(LRimage ,2);
+    LRimage_contrast = LRimage-LRimage_mean;
+    maxLag =2;
+    
+    cc = [];
+    for u = 1:size(LRimage_contrast,2)-1
+        R = xcorr(LRimage_contrast(:,u),LRimage_contrast(:,u+1),maxLag,'normalized');
+        cc = [cc ; max(R)];
+    end
+    f_coeff = ones(1,smoothFactor)/smoothFactor;
+    crossCorrVals = filter(f_coeff, 1, cc);
+
+
 %%
 % I = Data.Volume;
 % Z = size(Data.I,3);
@@ -1887,4 +1981,171 @@ function edit_deltaY_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in radiobutton_flasePositives.
+function radiobutton_flasePositives_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_flasePositives (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_flasePositives
+
+if get(handles.radiobutton_flasePositives,'Value')
+    set(handles.radiobutton_falseNegatives,'Value',0)
+end
+
+
+% --- Executes on button press in radiobutton_falseNegatives.
+function radiobutton_falseNegatives_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_falseNegatives (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_falseNegatives
+
+if get(handles.radiobutton_falseNegatives,'Value')
+    set(handles.radiobutton_flasePositives,'Value',0)
+end
+
+
+% --------------------------------------------------------------------
+function menu_validateStalls_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_validateStalls (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
+    set(handles.menu_validateStalls,'Checked','on')
+    set(handles.uipanel_validationPanel,'Visible','on')
+    updateStallandFrame(handles, 'NextorCurrent')
+%     if get(handles.radiobutton_flasePositives,'Value')
+%         seg_no = str2double(get(handles.edit_segno,'string'));
+%         frame_no = str2double(get(handles.edit_volnumber,'string'));
+%         false_positives_idx = find(Data.StallingMatrix' == 0 & Data.AutoStallingMatrix' == 1 & Data.ValidationFlag' == 0);
+%         current_pos_sub = sub2ind(size(Data.StallingMatrix'),frame_no,seg_no);
+%         idx = find(false_positives_idx >= current_pos_sub);
+%         if ~isempty(idx)
+%             idx_to_move = false_positives_idx(idx(1));
+%             [frame_no, seg_no] = ind2sub(size(Data.StallingMatrix'),idx_to_move);
+%             set(handles.edit_segno,'string',num2str(seg_no))
+%             set(handles.edit_volnumber,'string',num2str(frame_no))
+%             draw(hObject, eventdata, handles);
+%         end
+%     elseif get(handles.radiobutton_falseNegatives,'Value')
+%         seg_no = str2double(get(handles.edit_segno,'string'));
+%         frame_no = str2double(get(handles.edit_volnumber,'string'));
+%         false_positives_idx = find(Data.StallingMatrix' == 1 & Data.AutoStallingMatrix' == 0 & Data.ValidationFlag' == 0);
+%         current_pos_sub = sub2ind(size(Data.StallingMatrix'),frame_no,seg_no);
+%         idx = find(false_positives_idx >= current_pos_sub);
+%         if ~isempty(idx)
+%             idx_to_move = false_positives_idx(idx(1));
+%             [frame_no, seg_no] = ind2sub(size(Data.StallingMatrix'),idx_to_move);
+%             set(handles.edit_segno,'string',num2str(seg_no))
+%             set(handles.edit_volnumber,'string',num2str(frame_no))
+%             draw(hObject, eventdata, handles);
+%         end
+%     end
+else
+    set(handles.menu_validateStalls,'Checked','off')
+    set(handles.uipanel_validationPanel,'Visible','off')
+end
+draw(hObject, eventdata, handles)
+
+function updateStallandFrame(handles, mov_dir)
+
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+frame_no = str2double(get(handles.edit_volnumber,'string'));
+if get(handles.radiobutton_flasePositives,'Value')
+    possible_idx = find(Data.StallingMatrix' == 0 & Data.AutoStallingMatrix' == 1 & Data.ValidationFlag' == 0);
+elseif get(handles.radiobutton_falseNegatives,'Value')
+    possible_idx = find(Data.StallingMatrix' == 1 & Data.AutoStallingMatrix' == 0 & Data.ValidationFlag' == 0);
+end
+if ~isempty(possible_idx)
+    idx_to_move = [];
+    current_pos_sub = sub2ind(size(Data.StallingMatrix'),frame_no,seg_no);
+    if strcmp(mov_dir,'Next')
+        idx = find(possible_idx > current_pos_sub);
+        if ~isempty(idx)
+            idx_to_move = possible_idx(idx(1));
+        end
+    elseif strcmp(mov_dir,'NextorCurrent')
+        idx = find(possible_idx >= current_pos_sub);
+        if ~isempty(idx)
+            idx_to_move = possible_idx(idx(1));
+        end
+    elseif strcmp(mov_dir,'Prev')
+        idx = find(possible_idx < current_pos_sub);
+        if ~isempty(idx)
+            idx_to_move = possible_idx(idx(end));
+        end
+    end
+    if ~isempty(idx_to_move)
+%         idx_to_move = possible_idx(idx(1));
+        [frame_no, seg_no] = ind2sub(size(Data.StallingMatrix'),idx_to_move);
+        set(handles.edit_segno,'string',num2str(seg_no))
+        set(handles.edit_volnumber,'string',num2str(frame_no))
+        if get(handles.checkbox_segmentZoomIn,'Value')
+            update_zoom_with_segno(seg_no, handles)
+        end
+        draw([], [], handles);
+    end
+end
+
+
+% --- Executes on button press in pushbutton_prevStallforVerification.
+function pushbutton_prevStallforVerification_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_prevStallforVerification (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+updateStallandFrame(handles, 'Prev')
+
+
+% --- Executes on button press in pushbutton_nextStallforVerification.
+function pushbutton_nextStallforVerification_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_nextStallforVerification (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+updateStallandFrame(handles, 'Next')
+
+% --- Executes on button press in pushbutton_isaStall.
+function pushbutton_isaStall_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_isaStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+global Data
+if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
+    seg_no = str2double(get(handles.edit_segno,'string'));
+    frame_no = str2double(get(handles.edit_volnumber,'string'));
+    if isfield(Data,'GTStallingMatrix')
+        Data.GTStallingMatrix(seg_no,frame_no) = 1;
+    end
+    if isfield(Data,'ValidationFlag')
+        Data.ValidationFlag(seg_no,frame_no) = 1;
+    end
+    draw(hObject, eventdata, handles)
+end
+
+% --- Executes on button press in pushbutton_notaStall.
+function pushbutton_notaStall_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_notaStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+global Data
+if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
+    seg_no = str2double(get(handles.edit_segno,'string'));
+    frame_no = str2double(get(handles.edit_volnumber,'string'));
+    if isfield(Data,'GTStallingMatrix')
+        Data.GTStallingMatrix(seg_no,frame_no) = 0;
+    end
+    if isfield(Data,'ValidationFlag')
+        Data.ValidationFlag(seg_no,frame_no) = 1;
+    end
+    draw(hObject, eventdata, handles)
 end
