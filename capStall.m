@@ -212,8 +212,8 @@ if isfield(Data,'Cap')
 end
 hold off
 set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles},'BusyAction','cancel');
-set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off');
-set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off');
+set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off','BusyAction','cancel');
+set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off','BusyAction','cancel');
 
 msg_display = '';
 if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
@@ -241,6 +241,11 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
                 msg_display = sprintf('%sGT: Not a Stall\n', msg_display);
             end
         end
+    end
+    if isfield(Data.seg(seg_no),'frame_seg_pos')
+        hold on
+        plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
+        hold off
     end
 end
 set(handles.text_stallinfo,'String',msg_display, 'fontsize', 10)
@@ -1056,6 +1061,7 @@ for vv = 1:size(Data.Cap,1)
     end
     [optimizer, metric] = imregconfig('monomodal');
     LRimage = zeros(size(seg(vv).pos,1),n_frames);
+    frame_seg_pos = zeros(size(seg(vv).pos,1),2,n_frames);
     for ww =1:n_frames
 %         ww
         frame_cropped_image = Data.I(min_x:max_x,min_y:max_y,ww);
@@ -1077,12 +1083,14 @@ for vv = 1:size(Data.Cap,1)
         frame_seg_pos_y(frame_seg_pos_y>bX) = bX;
 %         ind = round(sub2ind(size(current_frame),frame_seg_pos_x',frame_seg_pos_y'));
 %         LRimage(:,ww) = current_frame(ind);
+        frame_seg_pos(:,:,ww) = [frame_seg_pos_x frame_seg_pos_y];
         for ll = 1:size(seg(vv).pos,1)
             LRimage(ll,ww) = current_frame(round(frame_seg_pos_x(ll)),round(frame_seg_pos_y(ll)));
         end
 %         moving_reg = imwarp(mean_cropped_image, tform, 'OutputView',imref2d(size(cropped_image)));
     end
     seg(vv).LRimage = LRimage;
+    seg(vv).frame_seg_pos = frame_seg_pos;
 end
 Data.seg = seg;
 Int_ts = zeros(length(seg),n_frames);
