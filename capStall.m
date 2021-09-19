@@ -222,33 +222,50 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
         frame_no = str2double(get(handles.edit_volnumber,'string'));
         if isfield(Data,'StallingMatrix')
             if Data.StallingMatrix(seg_no,frame_no) == 1
-                msg_display = sprintf('%sHuman: Stall \n', msg_display);
+                msg_display = 'Human: Stall';
+                color = 'r';
             else
-                msg_display = sprintf('%sHuman: Not a Stall \n', msg_display);
+                msg_display = 'Human: Not a Stall';
+                color = 'k';
             end
+            set(handles.text_stallinfo,'String',msg_display, 'fontsize', 10)
+            set(handles.text_stallinfo,'ForegroundColor',color)
         end
+
+        
         if isfield(Data,'AutoStallingMatrix')
             if Data.AutoStallingMatrix(seg_no,frame_no) == 1
-                msg_display = sprintf('%sAuto: Stall\n', msg_display);
+                msg_display = 'Auto: Stall';
+                color = 'g';
             else
-                msg_display = sprintf('%sAuto: Not a Stall\n', msg_display);
+                msg_display = 'Auto: Not a Stall';
+                color = 'k';
             end
+            set(handles.text_autostallinfo,'String',msg_display, 'fontsize', 10)
+            set(handles.text_autostallinfo,'ForegroundColor',color)
         end
+
+        
         if isfield(Data,'GTStallingMatrix')
             if Data.GTStallingMatrix(seg_no,frame_no) == 1
-                msg_display = sprintf('%sGT: Stall\n', msg_display);
+                msg_display = 'GT: Stall';
+                color = 'y';
             else
-                msg_display = sprintf('%sGT: Not a Stall\n', msg_display);
+                msg_display = 'GT: Not a Stall';
+                color = 'k';
             end
+            set(handles.text_GTstallinfo,'String',msg_display, 'fontsize', 10)
+            set(handles.text_GTstallinfo,'ForegroundColor',color)
         end
+
     end
+    
     if isfield(Data.seg(seg_no),'frame_seg_pos')
         hold on
         plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
         hold off
     end
 end
-set(handles.text_stallinfo,'String',msg_display, 'fontsize', 10)
 
 axes(handles.axes2)
 colormap('gray');
@@ -1730,6 +1747,16 @@ end
 if isfield(temp_struct,'StallingMatrix')
    Data.StallingMatrix = temp_struct.StallingMatrix;
 end
+if isfield(temp_struct,'AutoStallingMatrix')
+   Data.AutoStallingMatrix = temp_struct.AutoStallingMatrix;
+end 
+if isfield(temp_struct,'GTStallingMatrix')
+   Data.GTStallingMatrix = temp_struct.GTStallingMatrix; 
+end 
+if isfield(temp_struct,'ValidationFlag')
+   Data.ValidationFlag = temp_struct.ValidationFlag; 
+end 
+
 
 draw(hObject, eventdata, handles);
 
@@ -1763,6 +1790,18 @@ if isfield(Data,'StallingMatrix')
     StallingMatrix = Data.StallingMatrix;
     save([pathname filename],'StallingMatrix','-append');
 end
+if isfield(Data,'AutoStallingMatrix')
+    AutoStallingMatrix = Data.AutoStallingMatrix;
+    save([pathname filename],'AutoStallingMatrix','-append');
+end 
+if isfield(Data,'GTStallingMatrix')
+    GTStallingMatrix = Data.GTStallingMatrix;
+    save([pathname filename],'GTStallingMatrix','-append');
+end 
+if isfield(Data,'ValidationFlag')
+    ValidationFlag = Data.ValidationFlag;
+    save([pathname filename],'ValidationFlag','-append');
+end 
 
 
 
