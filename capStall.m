@@ -221,43 +221,46 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
         seg_no = str2double(get(handles.edit_segno,'string'));
         frame_no = str2double(get(handles.edit_volnumber,'string'));
         if isfield(Data,'StallingMatrix')
+            msg_display = 'Human:';
+            set(handles.text_stallinfoName,'String',msg_display, 'fontsize', 10)
             if Data.StallingMatrix(seg_no,frame_no) == 1
-                msg_display = 'Human: Stall';
+                msg_display = 'Stall';
                 color = 'r';
             else
-                msg_display = 'Human: Not a Stall';
+                msg_display = 'Not a Stall';
                 color = 'k';
             end
             set(handles.text_stallinfo,'String',msg_display, 'fontsize', 10)
             set(handles.text_stallinfo,'ForegroundColor',color)
         end
 
-        
         if isfield(Data,'AutoStallingMatrix')
+            msg_display = 'Auto:';
+            set(handles.text_AutostallinfoName,'String',msg_display, 'fontsize', 10)
             if Data.AutoStallingMatrix(seg_no,frame_no) == 1
-                msg_display = 'Auto: Stall';
+                msg_display = 'Stall';
                 color = 'g';
             else
-                msg_display = 'Auto: Not a Stall';
+                msg_display = 'Not a Stall';
                 color = 'k';
             end
-            set(handles.text_autostallinfo,'String',msg_display, 'fontsize', 10)
-            set(handles.text_autostallinfo,'ForegroundColor',color)
+            set(handles.text_Autostallinfo,'String',msg_display, 'fontsize', 10)
+            set(handles.text_Autostallinfo,'ForegroundColor',color)
         end
 
-        
         if isfield(Data,'GTStallingMatrix')
+            msg_display = 'GT:';
+            set(handles.text_GTstallinfoName,'String',msg_display, 'fontsize', 10)
             if Data.GTStallingMatrix(seg_no,frame_no) == 1
-                msg_display = 'GT: Stall';
+                msg_display = 'Stall';
                 color = 'y';
             else
-                msg_display = 'GT: Not a Stall';
+                msg_display = 'Not a Stall';
                 color = 'k';
             end
             set(handles.text_GTstallinfo,'String',msg_display, 'fontsize', 10)
             set(handles.text_GTstallinfo,'ForegroundColor',color)
         end
-
     end
     
     if isfield(Data.seg(seg_no),'frame_seg_pos')
