@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 15-Sep-2021 10:42:20
+% Last Modified by GUIDE v2.5 21-Sep-2021 16:03:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -262,11 +262,12 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
             set(handles.text_GTstallinfo,'ForegroundColor',color)
         end
     end
-    
-    if isfield(Data.seg(seg_no),'frame_seg_pos')
-        hold on
-        plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
-        hold off
+    if handles.displayCurrentSegment.Value == 1
+        if isfield(Data.seg(seg_no),'frame_seg_pos')
+            hold on
+            plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
+            hold off
+        end
     end
 end
 
@@ -292,7 +293,7 @@ else
             set(hpt1,'ButtonDownFcn', sprintf('Cap_Stall_deleteZpt(%d)',u) );
         end
     end
-    
+end    
 %     if isfield(Data,'pts1')
 %         for u = 1:size(Data.pts1,1)
 %             hpt1 = text(Data.pts1(u,2),Data.pts1(u,1),num2str(u),'Color','m','FontSize',10);
@@ -311,7 +312,7 @@ else
 %             set(hpt3,'ButtonDownFcn', sprintf('Cap_Stall_deleteZpt(%d)',3*u) );
 %         end
 %     end
-end
+
 hold off
 axis image;
 % set(h2, 'ButtonDownFcn', {@axes2_ButtonDown, handles});
@@ -2199,3 +2200,13 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
     end
     draw(hObject, eventdata, handles)
 end
+
+
+% --- Executes on button press in displayCurrentSegment.
+function checkbox_displayCurrentSegment_Callback(hObject, eventdata, handles)
+% hObject    handle to displayCurrentSegment (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of displayCurrentSegment
+draw(hObject, eventdata, handles)
