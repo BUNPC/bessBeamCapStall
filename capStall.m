@@ -253,7 +253,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
             set(handles.text_GTstallinfoName,'String',msg_display, 'fontsize', 10)
             if Data.GTStallingMatrix(seg_no,frame_no) == 1
                 msg_display = 'Stall';
-                color = 'y';
+                color = 'b';
             else
                 msg_display = 'Not a Stall';
                 color = 'k';
@@ -268,6 +268,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
         plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
         hold off
     end
+else
 end
 
 axes(handles.axes2)
@@ -340,7 +341,7 @@ if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
     if isfield(Data,'GTStallingMatrix')
         xidx = find(Data.GTStallingMatrix(jj,:) == 1);
         yidx = size(Data.seg(jj).LRimage,1)/1.5*ones(1,length(xidx));
-        text(yidx,xidx,'*','Color','yellow','FontSize',10);
+        text(yidx,xidx,'*','Color','blue','FontSize',10);
     end
     hold off
     

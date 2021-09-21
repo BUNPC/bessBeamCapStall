@@ -3,7 +3,7 @@ function Cap_Stall_deletept(idx)
 global Data
 answer = questdlg(['Do you want to delete number ' num2str(idx) ' Caplillary?']);
 if strcmp(answer,'Yes')
-    Data.Cap(idx,:) = [];
+%     Data.Cap(idx,:) = [];
     if isfield(Data,'pts')
         if size(Data.pts,1) >= idx
             Data.pts(idx,:) = [];
