@@ -1081,6 +1081,16 @@ for vv = 1:size(Data.Cap,1)
     if max_y-min_y+1 < 16
         mean_cropped_image = [mean_cropped_image zeros(size(mean_cropped_image,1), 15-(max_y-min_y))];
     end
+    mean_seg_pos = [seg(vv).pos(:,2)-min_x seg(vv).pos(:,1)-min_y seg(vv).pos(:,3)];
+    mean_mask = zeros(size(mean_cropped_image));
+%     for uuu = 1:size(mean_seg_pos,1)
+%         startx = max(mean_seg_pos(uuu,1)-4,1);
+%         endx = min(mean_seg_pos(uuu,1)+4,size(mean_seg_pos,1));
+%         starty = max(mean_seg_pos(uuu,2)-4,1);
+%         endy = min(mean_seg_pos(uuu,2)+4,size(mean_seg_pos,2));
+%         mean_mask(startx:endx,starty:endy) = 1;
+%     end
+%     mean_cropped_image = mean_cropped_image.*mean_mask;
     [optimizer, metric] = imregconfig('monomodal');
     LRimage = zeros(size(seg(vv).pos,1),n_frames);
     frame_seg_pos = zeros(size(seg(vv).pos,1),2,n_frames);
@@ -1094,9 +1104,16 @@ for vv = 1:size(Data.Cap,1)
         if max_y-min_y+1 < 16
             frame_cropped_image = [frame_cropped_image zeros(size(frame_cropped_image,1), 15-(max_y-min_y))];
         end
+        lastwarn('')
         tform = imregtform(mean_cropped_image', frame_cropped_image', 'rigid', optimizer, metric);
         mean_seg_pos = [seg(vv).pos(:,2)-min_x seg(vv).pos(:,1)-min_y seg(vv).pos(:,3)];
-        [points_x, points_y] = transformPointsForward(tform,mean_seg_pos(:,1),mean_seg_pos(:,2));
+        [warnMsg, warnId] = lastwarn;
+        if isempty(warnMsg)
+            [points_x, points_y] = transformPointsForward(tform,mean_seg_pos(:,1),mean_seg_pos(:,2));
+        else
+            points_x = mean_seg_pos(:,1); 
+            points_y = mean_seg_pos(:,2);
+        end
         frame_seg_pos_x =points_x+min_x ;
         frame_seg_pos_y = points_y+min_y;
         frame_seg_pos_x(frame_seg_pos_x<1) = 1;
@@ -1155,7 +1172,7 @@ end
 
 % Find stalls using cross correlation
 smoothFactor = 6;
-corrThresh = 0.6;
+corrThresh = 0.7;
 Data.AutoStallingMatrix = zeros(length(seg),n_frames);
 for i = 1:length(seg)
     crossVals = correlateLT(seg(i).LRimage,smoothFactor);
@@ -2139,6 +2156,7 @@ if ~isempty(possible_idx)
         [frame_no, seg_no] = ind2sub(size(Data.StallingMatrix'),idx_to_move);
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
+        set(handles.slider_movedata,'Value',frame_no);
         if get(handles.checkbox_segmentZoomIn,'Value')
             update_zoom_with_segno(seg_no, handles)
         end
