@@ -34,7 +34,7 @@ if strcmp(answer,'Yes')
     
     % delete column for that capillary in the StallingMatrix
     if isfield(Data,'StallingMatrix')
-        if size(Data.AutoStallingMatrix,1) >= idx
+        if size(Data.StallingMatrix,1) >= idx
             Data.StallingMatrix(idx,:) = [];
         end
     end

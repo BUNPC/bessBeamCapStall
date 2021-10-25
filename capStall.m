@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 21-Sep-2021 16:03:05
+% Last Modified by GUIDE v2.5 24-Oct-2021 22:45:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -157,8 +157,8 @@ set(handles.slider_movedata,'min',1);
 set(handles.slider_movedata,'Value',1);
 set(handles.slider_movedata,'SliderStep',[1/(Sz-1), 10/(Sz-1)]);
 
-set(handles.edit_MIPstartidx,'String',num2str(1));
-set(handles.edit_MIPnofframes,'String',num2str(Vz));
+%set(handles.edit_MIPstartidx,'String',num2str(1));
+%set(handles.edit_MIPnofframes,'String',num2str(Vz));
 
 % set(handles.slider_moveinZ,'max',Vz);
 % set(handles.slider_moveinZ,'min',1);
@@ -188,9 +188,9 @@ if isfield(Data,'Int_ts')
 else 
     cseg = 0;
 end
-startidx = str2double(get(handles.edit_MIPstartidx,'String'));
-endidx = str2double(get(handles.edit_MIPnofframes,'String'));
-set(handles.text2,'String',['to ' num2str(startidx+endidx-1) ' spanning']);
+% startidx = str2double(get(handles.edit_MIPstartidx,'String'));
+% endidx = str2double(get(handles.edit_MIPnofframes,'String'));
+% set(handles.text2,'String',['to ' num2str(startidx+endidx-1) ' spanning']);
 axes(handles.axes1)
 colormap('gray');
 h = imagesc(I(:,:,ii),[MinI MaxI]);
@@ -215,11 +215,11 @@ set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles},'BusyAction','cancel');
 set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off','BusyAction','cancel');
 set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off','BusyAction','cancel');
 
+seg_no = str2double(get(handles.edit_segno,'string'));
+frame_no = str2double(get(handles.edit_volnumber,'string'));
 msg_display = '';
 if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
     if isfield(Data,'seg')
-        seg_no = str2double(get(handles.edit_segno,'string'));
-        frame_no = str2double(get(handles.edit_volnumber,'string'));
         if isfield(Data,'StallingMatrix')
             msg_display = 'Human:';
             set(handles.text_stallinfoName,'String',msg_display, 'fontsize', 10)
@@ -254,6 +254,9 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
             if Data.GTStallingMatrix(seg_no,frame_no) == 1
                 msg_display = 'Stall';
                 color = 'b';
+            elseif Data.GTStallingMatrix(seg_no,frame_no) == 2
+                msg_display = 'Questionable';
+                color = 'm';
             else
                 msg_display = 'Not a Stall';
                 color = 'k';
@@ -262,39 +265,93 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
             set(handles.text_GTstallinfo,'ForegroundColor',color)
         end
     end
-    if handles.displayCurrentSegment.Value == 1
-        if isfield(Data.seg(seg_no),'frame_seg_pos')
-            hold on
-            plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
-            hold off
-        end
-    end
-else
 end
+
+if handles.displayCurrentSegment.Value == 1
+    if isfield(Data.seg,'pos')
+        hold on
+        if isfield(Data.seg(seg_no),'frame_seg_pos')
+            plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
+        else
+            plot(Data.seg(seg_no).pos(:,1),Data.seg(seg_no).pos(:,2),'r.','markersize',16);
+        end
+        hold off
+    else
+        handles.displayCurrentSegment.Value = 0;
+        error('Warning: No segments available')
+    end
+end
+
 
 axes(handles.axes2)
 colormap('gray');
-h2 = imagesc(squeeze(max(Data.Volume(startidx:startidx+endidx-1,:,:),[],1)),[MinI MaxI]);
-hold on
-if (get(handles.radiobutton_showseg,'Value') == 1)
-    if isfield(Data,'seg')
-        jj = str2double(get(handles.edit_segno,'string'));
-        plot(Data.seg(jj).pos(:,1),Data.seg(jj).pos(:,2),'r.','markersize',16);
+if isfield(Data,'seg')
+    delete(handles.axes2.Children)
+    if isfield(Data.seg,'LRimage') || isfield(Data.seg,'pos')
+        hold on
+        [Sx, Sy, ~] = size(Data.I);
+        seg_pos = Data.seg(seg_no).pos;
+        deltaX = str2double(get(handles.edit_deltaX,'String'));
+        deltaY = str2double(get(handles.edit_deltaY,'String'));
+        Xmin = min(seg_pos(:,1))-deltaX;
+        Xmax = max(seg_pos(:,1))+deltaX;
+        Ymin = min(seg_pos(:,2))-deltaY;
+        Ymax = max(seg_pos(:,2))+deltaY;
+        Xmin = min(max(Xmin,1),Sx);
+        Xmax = min(max(Xmax,Xmin+1),Sx);
+        Ymin = min(max(Ymin,1),Sy);
+        Ymax = min(max(Ymax,Ymin+1),Sy);
+        h2 = imagesc(I(:,:,ii),[MinI MaxI]);
+        axis image;
+        xlim([Xmin Xmax])
+        ylim([Ymin Ymax])
+        if handles.displayCurrentSegment.Value == 1
+            if isfield(Data.seg,'pos')
+                hold on
+                if isfield(Data.seg(seg_no),'frame_seg_pos')
+                    plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
+                else
+                    plot(Data.seg(seg_no).pos(:,1),Data.seg(seg_no).pos(:,2),'r.','markersize',16);
+                end
+                hold off
+            end
+        end
+        hold off
+    else
+        colormap('gray');
+        h2 = imagesc(I(:,:,ii),[MinI MaxI]);
+        axis image;
     end
 else
-    if isfield(Data,'Cap')
-        for u = 1:size(Data.Cap,1)
-            hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
-            set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
-        end
-    end
-    if isfield(Data,'pts')
-        for u = 1:size(Data.pts,1)
-            hpt1 = text(Data.pts(u,2),Data.pts(u,1),num2str(u),'Color','m','FontSize',10);
-            set(hpt1,'ButtonDownFcn', sprintf('Cap_Stall_deleteZpt(%d)',u) );
-        end
-    end
-end    
+    colormap('gray');
+    h2 = imagesc(I(:,:,ii),[MinI MaxI]);
+    axis image;
+    xlim([Xmin Xmax])
+    ylim([Ymin Ymax])
+end
+
+
+% h2 = imagesc(squeeze(max(Data.Volume(startidx:startidx+endidx-1,:,:),[],1)),[MinI MaxI]);
+% hold on
+% if (get(handles.radiobutton_showseg,'Value') == 1)
+%     if isfield(Data,'seg')
+%         jj = str2double(get(handles.edit_segno,'string'));
+%         plot(Data.seg(jj).pos(:,1),Data.seg(jj).pos(:,2),'r.','markersize',16);
+%     end
+% else
+%     if isfield(Data,'Cap')
+%         for u = 1:size(Data.Cap,1)
+%             hpt = text(Data.Cap(u,2),Data.Cap(u,1),num2str(u),'Color','g','FontSize',10);
+%             set(hpt,'ButtonDownFcn', sprintf('Cap_Stall_deletept(%d)',u) );
+%         end
+%     end
+%     if isfield(Data,'pts')
+%         for u = 1:size(Data.pts,1)
+%             hpt1 = text(Data.pts(u,2),Data.pts(u,1),num2str(u),'Color','m','FontSize',10);
+%             set(hpt1,'ButtonDownFcn', sprintf('Cap_Stall_deleteZpt(%d)',u) );
+%         end
+%     end
+% end    
 %     if isfield(Data,'pts1')
 %         for u = 1:size(Data.pts1,1)
 %             hpt1 = text(Data.pts1(u,2),Data.pts1(u,1),num2str(u),'Color','m','FontSize',10);
@@ -314,11 +371,11 @@ end
 %         end
 %     end
 
-hold off
-axis image;
+% hold off
+% axis image;
 % set(h2, 'ButtonDownFcn', {@axes2_ButtonDown, handles});
 
-if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
+if isfield(Data,'seg') && isfield(Data.seg,'LRimage')
     
     jj = str2double(get(handles.edit_segno,'string'));
     axes(handles.axes3)
@@ -326,6 +383,9 @@ if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
     axis image
     hold on
     x = xlim;
+    handles.axes3.YAxis.Limits = [0,351];
+    handles.axes3.XTick = [];
+    handles.axes3.YTick = linspace(0,350,36);
     y = [ii ii];
     line(x,y, 'LineWidth', 1, 'Color','white');
     if isfield(Data,'StallingMatrix')
@@ -345,7 +405,7 @@ if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
         text(yidx,xidx,'*','Color','blue','FontSize',10);
     end
     hold off
-    
+    handles.SegLengthDisplay.String = [ num2str(x(2)-x(1)) ' Pixels' ];
     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
     
     
@@ -373,6 +433,7 @@ if isfield(Data,'seg') & isfield(Data.seg,'LRimage')
 %     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
 end
 
+
 Data.handles =  handles;
 Data.hObject =  hObject;
 Data.eventdata = eventdata;
@@ -385,35 +446,35 @@ Data.eventdata = eventdata;
 function figure_WindowKeyPressFcn(hObject, eventdata, handles)
 
 global Data
-
-if ~strcmpi(get(gco,'Tag'),'figure1')
-    if strcmpi(get(gco,'style'),'edit')
-        return;
-    end
-end
-
-keyPressed = eventdata.Key;
-if strcmpi(keyPressed,'space')
-    if isfield(Data,'Int_ts')
-        jj = str2double(get(handles.edit_segno,'string'));
-        ii = str2double(get(handles.edit_volnumber,'string'));
-        if isfield(Data,'StallingMatrix')
-            if(Data.StallingMatrix(jj,ii) == 0)
-                Data.StallingMatrix(jj,ii) = 1;
-            else
-                Data.StallingMatrix(jj,ii) = 0;
-            end
-        else
-            StallingMatrix = zeros(length(Data.seg),size(Data.I,3));
-            StallingMatrix(jj,ii) = 1;
-            Data.StallingMatrix = StallingMatrix; 
-        end
-    end
-    draw(hObject, eventdata, handles);
-end
-if isfield(Data,'sliderobject')
-    uicontrol(Data.sliderobject);
-end
+% 
+% if ~strcmpi(get(gco,'Tag'),'figure1')
+%     if strcmpi(get(gco,'style'),'edit')
+%         return;
+%     end
+% end
+% 
+% keyPressed = eventdata.Key;
+% if strcmpi(keyPressed,'space')
+%     if isfield(Data,'Int_ts')
+%         jj = str2double(get(handles.edit_segno,'string'));
+%         ii = str2double(get(handles.edit_volnumber,'string'));
+%         if isfield(Data,'StallingMatrix')
+%             if(Data.StallingMatrix(jj,ii) == 0)
+%                 Data.StallingMatrix(jj,ii) = 1;
+%             else
+%                 Data.StallingMatrix(jj,ii) = 0;
+%             end
+%         else
+%             StallingMatrix = zeros(length(Data.seg),size(Data.I,3));
+%             StallingMatrix(jj,ii) = 1;
+%             Data.StallingMatrix = StallingMatrix; 
+%         end
+%     end
+%     draw(hObject, eventdata, handles);
+% end
+% if isfield(Data,'sliderobject')
+%     uicontrol(Data.sliderobject);
+% end
  
 
 
@@ -424,29 +485,33 @@ global Data
 parent = (get(hObject, 'Parent'));
 mouseclick = get(parent, 'SelectionType');
 if strcmp(mouseclick,'normal')
-    ii = round(eventdata.IntersectionPoint(1));
-    ii = min(max(ii,1),size(Data.I,3));
-    set(handles.edit_volnumber,'string',num2str(ii));
-    set(handles.slider_movedata,'Value',ii);
-    draw(hObject, eventdata, handles);
-    if isfield(Data,'sliderobject')
-        uicontrol(Data.sliderobject);
-    end 
-elseif strcmp(mouseclick,'alt')
-     ii = round(eventdata.IntersectionPoint(1));
-     jj = str2double(get(handles.edit_segno,'string'));
-     if isfield(Data,'StallingPts')
-         if isfield(Data.StallingPts,'pos')
-             Data.StallingPts(jj).pos = [Data.StallingPts(jj).pos; ii];
-         else
-             Data.StallingPts(jj).pos = ii;
-         end
-     else 
-         stallcount = length(Data.seg);
-         Data.StallingPts(stallcount).pos = [];
-         Data.StallingPts(jj).pos = ii;
-     end
+    ii = round(eventdata.IntersectionPoint(2));
+    %ii = min(max(ii,1),size(Data.I,3));
+    if ii <= 350 && ii >=1
+        set(handles.edit_volnumber,'string',num2str(ii));
+        set(handles.slider_movedata,'Value',ii);
+        draw(hObject, eventdata, handles);
+        if isfield(Data,'sliderobject')
+            uicontrol(Data.sliderobject);
+        end
+    end
+
 end
+% elseif strcmp(mouseclick,'alt')
+%      ii = round(eventdata.IntersectionPoint(1));
+%      jj = str2double(get(handles.edit_segno,'string'));
+%      if isfield(Data,'StallingPts')
+%          if isfield(Data.StallingPts,'pos')
+%              Data.StallingPts(jj).pos = [Data.StallingPts(jj).pos; ii];
+%          else
+%              Data.StallingPts(jj).pos = ii;
+%          end
+%      else 
+%          stallcount = length(Data.seg);
+%          Data.StallingPts(stallcount).pos = [];
+%          Data.StallingPts(jj).pos = ii;
+%      end
+% end
 draw(hObject, eventdata, handles);
 if isfield(Data,'sliderobject')
     uicontrol(Data.sliderobject);
@@ -713,20 +778,20 @@ if isfield(Data,'sliderobject')
     uicontrol(Data.sliderobject);
 end
 
-function axes2_ButtonDown(hObject, eventdata, handles)
-
-global Data
-
-parent = (get(hObject, 'Parent'));
-pts = round(get(parent, 'CurrentPoint'));
-y = pts(1,1);
-x = pts(1,2);
-z = str2double(get(handles.edit_MIPstartidx,'String'));
-if isfield(Data,'pts')
-    Data.pts = [Data.pts; x y z];
-else
-    Data.pts = [x y z];
-end
+% function axes2_ButtonDown(hObject, eventdata, handles)
+% 
+% global Data
+% 
+% parent = (get(hObject, 'Parent'));
+% pts = round(get(parent, 'CurrentPoint'));
+% y = pts(1,1);
+% x = pts(1,2);
+% z = str2double(get(handles.edit_MIPstartidx,'String'));
+% if isfield(Data,'pts')
+%     Data.pts = [Data.pts; x y z];
+% else
+%     Data.pts = [x y z];
+% end
 % count = 0;
 % if isfield(Data,'count')
 %     if rem(Data.count,3) == 0
@@ -1210,6 +1275,8 @@ else
     Data.ValidationFlag(idx) = 1;
 end
 draw(hObject, eventdata, handles);
+makeSegLengthHistogram(handles);
+makeSegQualityAnalysis(handles);
 
 function crossCorrVals = correlateLT(LRimage,smoothFactor)
     LRimage_mean = mean(LRimage ,2);
@@ -1594,8 +1661,12 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
-if get(handles.checkbox_segmentZoomIn,'Value')
-    update_zoom_with_segno(jj, handles)
+SkipAllDisplay(handles);
+if isfield(Data,'seg')
+    if isfield(Data.seg,'LRimage')
+        makeSegQualityAnalysis(handles);
+        makeDatasetQualityAnalysis(handles);
+    end
 end
 draw(hObject, eventdata, handles);
 
@@ -1623,8 +1694,12 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj-1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
-if get(handles.checkbox_segmentZoomIn,'Value')
-    update_zoom_with_segno(jj, handles)
+SkipAllDisplay(handles);
+if isfield(Data,'seg')
+    if isfield(Data.seg,'LRimage')
+        makeSegQualityAnalysis(handles);
+        makeDatasetQualityAnalysis(handles);
+    end
 end
 draw(hObject, eventdata, handles);
 
@@ -1639,34 +1714,38 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj+1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
-if get(handles.checkbox_segmentZoomIn,'Value')
-    update_zoom_with_segno(jj, handles)
+SkipAllDisplay(handles);
+if isfield(Data,'seg')
+    if isfield(Data.seg,'LRimage')
+        makeSegQualityAnalysis(handles);
+        makeDatasetQualityAnalysis(handles);
+    end
 end
 draw(hObject, eventdata, handles);
 
 
-function update_zoom_with_segno(seg_no, handles)
+% function update_zoom_with_segno(seg_no, handles)
+% 
+% global Data
+% 
+% [Sx, Sy, ~] = size(Data.I);
+% seg_pos = Data.seg(seg_no).pos;
+% deltaX = str2double(get(handles.edit_deltaX,'String'));
+% deltaY = str2double(get(handles.edit_deltaY,'String'));
+% Xmin = min(seg_pos(:,1))-deltaX;
+% Xmax = max(seg_pos(:,1))+deltaX;
+% Ymin = min(seg_pos(:,2))-deltaY;
+% Ymax = max(seg_pos(:,2))+deltaY;
+% 
+% Xmin = min(max(Xmin,1),Sx);
+% Xmax = min(max(Xmax,Xmin+1),Sx);
+% Ymin = min(max(Ymin,1),Sy);
+% Ymax = min(max(Ymax,Ymin+1),Sy);
 
-global Data
-
-[Sx, Sy, ~] = size(Data.I);
-seg_pos = Data.seg(seg_no).pos;
-deltaX = str2double(get(handles.edit_deltaX,'String'));
-deltaY = str2double(get(handles.edit_deltaY,'String'));
-Xmin = min(seg_pos(:,1))-deltaX;
-Xmax = max(seg_pos(:,1))+deltaX;
-Ymin = min(seg_pos(:,2))-deltaY;
-Ymax = max(seg_pos(:,2))+deltaY;
-
-Xmin = min(max(Xmin,1),Sx);
-Xmax = min(max(Xmax,Xmin+1),Sx);
-Ymin = min(max(Ymin,1),Sy);
-Ymax = min(max(Ymax,Ymin+1),Sy);
-
-set(handles.edit_Xmin,'String',num2str(Xmin))
-set(handles.edit_Xmax,'String',num2str(Xmax))
-set(handles.edit_Ymin,'String',num2str(Ymin))
-set(handles.edit_Ymax,'String',num2str(Ymax))
+% set(handles.edit_Xmin,'String',num2str(Xmin))
+% set(handles.edit_Xmax,'String',num2str(Xmax))
+% set(handles.edit_Ymin,'String',num2str(Ymin))
+% set(handles.edit_Ymax,'String',num2str(Ymax))
 
 
 
@@ -1746,8 +1825,12 @@ function menu_loadResults_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-global Data
+global Data;
+handles.displayCurrentSegment.Value = 0;
+delete(handles.axes3.Children)
+delete(handles.axes4.Children)
+delete(handles.axes5.Children)
+delete(handles.axes6.Children)
 
 [filename, pathname] = uigetfile;
 if filename == 0
@@ -1762,6 +1845,11 @@ if isfield(temp_struct,'pts')
 end
 if isfield(temp_struct,'seg')
     Data.seg = temp_struct.seg;
+    if isfield(Data.seg,'LRimage')
+        makeSegLengthHistogram(handles);
+        makeSegQualityAnalysis(handles);
+        makeDatasetQualityAnalysis(handles);
+    end
 end
 if isfield(temp_struct,'Int_ts')
     Data.Int_ts = temp_struct.Int_ts;
@@ -1774,12 +1862,14 @@ if isfield(temp_struct,'AutoStallingMatrix')
 end 
 if isfield(temp_struct,'GTStallingMatrix')
    Data.GTStallingMatrix = temp_struct.GTStallingMatrix; 
+   handles.displayCurrentSegment.Value = 1;
 end 
 if isfield(temp_struct,'ValidationFlag')
    Data.ValidationFlag = temp_struct.ValidationFlag; 
 end 
-
-
+if isfield(temp_struct,'seglengthAnalysis')
+    Data.seglengthAnalysis = temp_struct.seglengthAnalysis; 
+end
 draw(hObject, eventdata, handles);
 
 
@@ -1824,6 +1914,10 @@ if isfield(Data,'ValidationFlag')
     ValidationFlag = Data.ValidationFlag;
     save([pathname filename],'ValidationFlag','-append');
 end 
+if isfield(Data,'seglengthAnalysis')
+    seglengthAnalysis = Data.seglengthAnalysis;
+    save([pathname filename],'seglengthAnalysis','-append');
+end
 
 
 
@@ -1998,16 +2092,6 @@ set(handles.edit_Ymax,'String',num2str(size(Data.I,2)))
 draw(hObject, eventdata, handles)
 
 
-% --- Executes on button press in checkbox_segmentZoomIn.
-function checkbox_segmentZoomIn_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox_segmentZoomIn (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of checkbox_segmentZoomIn
-
-
-
 function edit_deltaX_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_deltaX (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -2015,7 +2099,7 @@ function edit_deltaX_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_deltaX as text
 %        str2double(get(hObject,'String')) returns contents of edit_deltaX as a double
-
+draw(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function edit_deltaX_CreateFcn(hObject, eventdata, handles)
@@ -2038,7 +2122,7 @@ function edit_deltaY_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_deltaY as text
 %        str2double(get(hObject,'String')) returns contents of edit_deltaY as a double
-
+draw(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function edit_deltaY_CreateFcn(hObject, eventdata, handles)
@@ -2063,6 +2147,7 @@ function radiobutton_flasePositives_Callback(hObject, eventdata, handles)
 
 if get(handles.radiobutton_flasePositives,'Value')
     set(handles.radiobutton_falseNegatives,'Value',0)
+    set(handles.radiobutton_Questionable,'Value',0)
 end
 
 
@@ -2076,7 +2161,20 @@ function radiobutton_falseNegatives_Callback(hObject, eventdata, handles)
 
 if get(handles.radiobutton_falseNegatives,'Value')
     set(handles.radiobutton_flasePositives,'Value',0)
+    set(handles.radiobutton_Questionable,'Value',0)
 end
+
+
+% --- Executes on button press in radiobutton_Questionable.
+function radiobutton_Questionable_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_Questionable (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if get(handles.radiobutton_Questionable,'Value')
+    set(handles.radiobutton_falseNegatives,'Value',0)
+    set(handles.radiobutton_flasePositives,'Value',0)
+end
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_Questionable
 
 
 % --------------------------------------------------------------------
@@ -2084,11 +2182,21 @@ function menu_validateStalls_Callback(hObject, eventdata, handles)
 % hObject    handle to menu_validateStalls (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global Data
 if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
-    set(handles.menu_validateStalls,'Checked','on')
-    set(handles.uipanel_validationPanel,'Visible','on')
-    updateStallandFrame(handles, 'NextorCurrent')
+    if isfield(Data,'GTStallingMatrix') && isfield(Data,'AutoStallingMatrix')
+        set(handles.menu_validateStalls,'Checked','on')
+        set(handles.uipanel_validationPanel,'Visible','on')
+    end
+    if isfield(Data,'seg')
+        if isfield(Data.seg,'LRimage')
+            updateStallandFrame(handles, 'NextorCurrent');
+            draw(hObject, eventdata, handles);
+            makeSegLengthHistogram(handles);
+            makeSegQualityAnalysis(handles);
+            makeDatasetQualityAnalysis(handles);
+        end
+    end
 %     if get(handles.radiobutton_flasePositives,'Value')
 %         seg_no = str2double(get(handles.edit_segno,'string'));
 %         frame_no = str2double(get(handles.edit_volnumber,'string'));
@@ -2119,18 +2227,105 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
 else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
+    delete(handles.axes4.Children)
+    delete(handles.axes5.Children)
+    delete(handles.axes6.Children)
 end
-draw(hObject, eventdata, handles)
+
+function makeSegLengthHistogram(handles)
+    global Data
+    for i = 1:length(Data.seg)
+        pixelLength(1,i) = size(Data.seg(i).LRimage,1);
+    end
+    delete(handles.axes4.Children)
+    hold on
+    pixelhist = histogram(handles.axes4,pixelLength,length(pixelLength)-1);    
+    handles.axes4.XAxis.Label.String = 'Pixel Length';
+    handles.axes4.XAxis.FontWeight = 'Bold';
+    handles.axes4.XAxis.TickValues = 0:5:max(pixelLength)+2;
+    handles.axes4.YAxis.Label.String = 'Num of Capillary';
+    handles.axes4.YAxis.FontWeight = 'Bold';
+    cutoffLine = xline(handles.axes4,str2num(handles.pixelCutofflengthValue.String)+1);
+    cutoffLine.Color = 'r';
+    cutoffLine.LineWidth = 2;
+    handles.NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.pixelCutofflengthValue.String)));
+    grid on
+    Data.seglengthAnalysis.cutoff = str2num(handles.pixelCutofflengthValue.String);
+    Data.seglengthAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=5));
+    
+function makeSegQualityAnalysis(handles)
+    global Data
+    delete(handles.axes5.Children)
+    handles.axes5.NextPlot = 'add';
+    seg_no = str2double(get(handles.edit_segno,'string'));
+    for i = 1:size(Data.I,3)
+        oneRow = Data.seg(seg_no).LRimage(:,i);
+        aveIntensity(1,i) = mean(oneRow);
+        SNR(1,i) = mean(oneRow)/std(oneRow);
+    end
+    IntHandle = plot(handles.axes5,1:size(Data.I,3),aveIntensity/max(aveIntensity),'-o','LineWidth',1,'MarkerSize',2);
+        IntHandle.Color = 'r';
+    SNRHandle = plot(handles.axes5,1:size(Data.I,3),SNR/max(SNR),'-o','LineWidth',1,'MarkerSize',2);
+        SNRHandle.Color = 'g';
+        handles.axes5.XAxis.Label.String = 'Slice Num';
+        handles.axes5.XAxis.FontWeight = 'Bold';
+        handles.axes5.XAxis.TickValues = linspace(0,350,15);
+        handles.axes5.YAxis.FontSize = 10;
+        handles.axes5.YAxis.FontWeight = 'Bold';
+        handles.axes5.YAxis.TickValues = linspace(0,1,6);
+    lgd = legend(handles.axes5,["Normalized Ave Intensity: " + num2str(mean(aveIntensity/max(aveIntensity)))],...
+                               ["Normalized Ave SNR: "+ num2str(mean(SNR/max(SNR)))]);
+        lgd.Location = 'northoutside';
+        lgd.Orientation = 'horizontal';
+%     aveIntLine = yline(handles.axes5,mean(aveIntensity/max(aveIntensity)));
+%         aveLine.Color = 't';
+%         aveLine.LineWidth = 2;
+%     aveSNRLine = yline(handles.axes5,mean(aveIntensity/max(aveIntensity)));
+%         aveSNRLine.Color = 'g';
+%         aveSNRLine.LineWidth = 2;
+
+function makeDatasetQualityAnalysis(handles)
+    global Data
+    delete(handles.axes6.Children)
+    handles.axes6.NextPlot = 'add';
+    seg_no = str2double(get(handles.edit_segno,'string'));
+    for j = 1:length(Data.seg)
+        for i = 1:size(Data.I,3)
+            oneRow = Data.seg(j).LRimage(:,i);
+            AveInt(1,i) = mean(oneRow);
+            SNR(1,i) = mean(oneRow)/std(oneRow);
+        end
+        DatasetAveInt(1,j) = mean(AveInt/max(AveInt));
+        DatasetAveSNR(1,j) = mean(SNR/max(SNR));
+    end
+    
+    DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
+        DatasetIntHist.FaceAlpha = 0.5;
+        DatasetIntHist.FaceColor = 'r';
+    DatasetSNRHist = histogram(handles.axes6,DatasetAveSNR,linspace(0,1,21));
+        DatasetSNRHist.FaceAlpha = 0.5;
+        DatasetSNRHist.FaceColor = 'g';
+        handles.axes6.XAxis.Limits = [0,1];
+        handles.axes6.XAxis.TickValues = linspace(0,1,11);
+        handles.axes6.XAxis.Label.String = 'Normalized Average';
+        handles.axes6.XAxis.FontWeight = 'Bold';
+        handles.axes6.YAxis.Label.String = 'Num of Capillary';
+        handles.axes6.YAxis.FontWeight = 'Bold';
+    IntLine = xline(handles.axes6,DatasetAveInt(1,seg_no),'r','LineWidth',2);
+    SNRLine = xline(handles.axes6,DatasetAveSNR(1,seg_no),'g','LineWidth',2);
 
 function updateStallandFrame(handles, mov_dir)
 
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
 frame_no = str2double(get(handles.edit_volnumber,'string'));
+SkipAllDisplay(handles);
 if get(handles.radiobutton_flasePositives,'Value')
     possible_idx = find(Data.StallingMatrix' == 0 & Data.AutoStallingMatrix' == 1 & Data.ValidationFlag' == 0);
 elseif get(handles.radiobutton_falseNegatives,'Value')
     possible_idx = find(Data.StallingMatrix' == 1 & Data.AutoStallingMatrix' == 0 & Data.ValidationFlag' == 0);
+elseif get(handles.radiobutton_Questionable,'Value')
+    possible_idx = find(Data.GTStallingMatrix' == 2 & Data.ValidationFlag' == 1);
 end
 if ~isempty(possible_idx)
     idx_to_move = [];
@@ -2157,12 +2352,24 @@ if ~isempty(possible_idx)
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
-        if get(handles.checkbox_segmentZoomIn,'Value')
-            update_zoom_with_segno(seg_no, handles)
-        end
+        (handles);
         draw([], [], handles);
     end
 end
+
+function SkipAllDisplay(handles)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+if isfield(Data,'seglengthAnalysis')
+    if ismember(seg_no,Data.seglengthAnalysis.capNum)
+        handles.pushbutton_SkipShortSeg.Visible = 'on';
+        handles.pushbutton_unSkipShortSeg.Visible = 'on';
+    else
+        handles.pushbutton_SkipShortSeg.Visible = 'off';
+        handles.pushbutton_unSkipShortSeg.Visible = 'off';
+    end
+end
+
 
 
 % --- Executes on button press in pushbutton_prevStallforVerification.
@@ -2182,6 +2389,7 @@ function pushbutton_nextStallforVerification_Callback(hObject, eventdata, handle
 
 updateStallandFrame(handles, 'Next')
 
+
 % --- Executes on button press in pushbutton_isaStall.
 function pushbutton_isaStall_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_isaStall (see GCBO)
@@ -2200,6 +2408,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
     end
     draw(hObject, eventdata, handles)
 end
+
 
 % --- Executes on button press in pushbutton_notaStall.
 function pushbutton_notaStall_Callback(hObject, eventdata, handles)
@@ -2221,6 +2430,25 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
 end
 
 
+% --- Executes on button press in pushbutton_Questionable.
+function pushbutton_Questionable_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_Questionable (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
+    seg_no = str2double(get(handles.edit_segno,'string'));
+    frame_no = str2double(get(handles.edit_volnumber,'string'));
+    if isfield(Data,'GTStallingMatrix')
+        Data.GTStallingMatrix(seg_no,frame_no) = 2;
+    end
+    if isfield(Data,'ValidationFlag')
+        Data.ValidationFlag(seg_no,frame_no) = 1;
+    end
+    draw(hObject, eventdata, handles)
+end
+
+
 % --- Executes on button press in displayCurrentSegment.
 function checkbox_displayCurrentSegment_Callback(hObject, eventdata, handles)
 % hObject    handle to displayCurrentSegment (see GCBO)
@@ -2229,3 +2457,141 @@ function checkbox_displayCurrentSegment_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of displayCurrentSegment
 draw(hObject, eventdata, handles)
+
+
+
+function pixelCutofflengthValue_Callback(hObject, eventdata, handles)
+% hObject    handle to pixelCutofflengthValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of pixelCutofflengthValue as text
+%        str2double(get(hObject,'String')) returns contents of pixelCutofflengthValue as a double
+makeSegLengthHistogram(handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function pixelCutofflengthValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pixelCutofflengthValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on button press in pushbutton_SkipShortSeg.
+function pushbutton_SkipShortSeg_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_SkipShortSeg (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+frame_no = str2double(get(handles.edit_volnumber,'string'));
+if isfield(Data,'GTStallingMatrix')
+    Data.GTStallingMatrix(seg_no,:) = 3;
+    Data.ValidationFlag(seg_no,:) = 1;
+end
+updateStallandFrame(handles, 'Next')
+
+
+% --- Executes on button press in pushbutton_unSkipShortSeg.
+function pushbutton_unSkipShortSeg_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_unSkipShortSeg (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+if isfield(Data,'GTStallingMatrix')
+    Data.GTStallingMatrix(seg_no,:) = 0;
+    Data.ValidationFlag(seg_no,:) = 0;
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to NumofFilteredValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on key press with focus on figure1 and none of its controls.
+function figure1_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+if isfield(Data,'I')
+    KeyPressed = eventdata.Key;
+    if isfield(Data,'seg')
+        if strcmpi(KeyPressed,"uparrow") % Previous Cap
+            pushbutton_prevseg_Callback(hObject, eventdata, handles);
+            disp('Last Capillary')
+        end
+
+        if strcmpi(KeyPressed,"downarrow") % Next Cap
+            pushbutton_nextseg_Callback(hObject, eventdata, handles);
+            disp('Next Capillary')
+        end
+    end
+    
+    if strcmpi(KeyPressed,"leftarrow") % last image
+        pushbutton_moveleft_Callback(hObject, eventdata, handles);
+        disp('Last Image')
+    end
+
+    if strcmpi(KeyPressed,"rightarrow") % next image
+        pushbutton_moveright_Callback(hObject, eventdata, handles);
+        disp('Next Image')
+    end
+    
+    if strcmpi(KeyPressed,"w") % increase upper throshold of contrast
+        handles.edit_MaxI.Value = handles.edit_MaxI.Value + 100;
+        handles.edit_MaxI.String = num2str(handles.edit_MaxI.Value);
+        edit_MaxI_Callback(hObject, eventdata, handles);
+        disp('Increase Max Threshold')
+    end
+    
+    if strcmpi(KeyPressed,"s") % decrease upper throshold of contrast
+        handles.edit_MaxI.Value = handles.edit_MaxI.Value - 100;
+        handles.edit_MaxI.String = num2str(handles.edit_MaxI.Value);
+        edit_MaxI_Callback(hObject, eventdata, handles);
+        disp('Decrease Max Threshold')
+    end
+
+    % Validation Use
+    if ~strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
+        if strcmpi(KeyPressed,"a") % Prev
+            pushbutton_prevStallforVerification_Callback(hObject, eventdata, handles);
+            disp('Previous Case for validation')
+        end
+
+        if strcmpi(KeyPressed,"d") % Next
+            pushbutton_nextStallforVerification_Callback(hObject, eventdata, handles);
+            disp('Next Case for validation')
+        end
+        
+        if strcmpi(KeyPressed,"j") % Stall
+            pushbutton_isaStall_Callback(hObject, eventdata, handles)
+            disp('Select Stall')
+        end
+        
+        if strcmpi(KeyPressed,"k") % Non-Stall
+            pushbutton_notaStall_Callback(hObject, eventdata, handles)
+            disp('Select Non-Stall')
+        end
+        
+        if strcmpi(KeyPressed,"l") % Questionable
+            pushbutton_Questionable_Callback(hObject, eventdata, handles)
+            disp('Select Questionable')
+        end
+    end
+else
+    disp('void')
+    return
+end
