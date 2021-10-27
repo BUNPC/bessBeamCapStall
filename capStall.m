@@ -2551,15 +2551,13 @@ if isfield(Data,'I')
     end
     
     if strcmpi(KeyPressed,"w") % increase upper throshold of contrast
-        handles.edit_MaxI.Value = handles.edit_MaxI.Value + 100;
-        handles.edit_MaxI.String = num2str(handles.edit_MaxI.Value);
+        handles.edit_MaxI.String = num2str(str2double(handles.edit_MaxI.String) + 100);
         edit_MaxI_Callback(hObject, eventdata, handles);
         disp('Increase Max Threshold')
     end
     
     if strcmpi(KeyPressed,"s") % decrease upper throshold of contrast
-        handles.edit_MaxI.Value = handles.edit_MaxI.Value - 100;
-        handles.edit_MaxI.String = num2str(handles.edit_MaxI.Value);
+        handles.edit_MaxI.String = num2str(str2double(handles.edit_MaxI.String) - 100);
         edit_MaxI_Callback(hObject, eventdata, handles);
         disp('Decrease Max Threshold')
     end
