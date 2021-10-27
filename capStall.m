@@ -2261,11 +2261,11 @@ function makeSegQualityAnalysis(handles)
     for i = 1:size(Data.I,3)
         oneRow = Data.seg(seg_no).LRimage(:,i);
         aveIntensity(1,i) = mean(oneRow);
-        SNR(1,i) = mean(oneRow)/std(oneRow);
+        COV(1,i) = std(oneRow)/mean(oneRow);
     end
     IntHandle = plot(handles.axes5,1:size(Data.I,3),aveIntensity/max(aveIntensity),'-o','LineWidth',1,'MarkerSize',2);
         IntHandle.Color = 'r';
-    SNRHandle = plot(handles.axes5,1:size(Data.I,3),SNR/max(SNR),'-o','LineWidth',1,'MarkerSize',2);
+    SNRHandle = plot(handles.axes5,1:size(Data.I,3),COV/max(COV),'-o','LineWidth',1,'MarkerSize',2);
         SNRHandle.Color = 'g';
         handles.axes5.XAxis.Label.String = 'Slice Num';
         handles.axes5.XAxis.FontWeight = 'Bold';
@@ -2274,7 +2274,7 @@ function makeSegQualityAnalysis(handles)
         handles.axes5.YAxis.FontWeight = 'Bold';
         handles.axes5.YAxis.TickValues = linspace(0,1,6);
     lgd = legend(handles.axes5,["Normalized Ave Intensity: " + num2str(mean(aveIntensity/max(aveIntensity)))],...
-                               ["Normalized Ave SNR: "+ num2str(mean(SNR/max(SNR)))]);
+                               ["Normalized Ave COV: "+ num2str(mean(COV/max(COV)))]);
         lgd.Location = 'northoutside';
         lgd.Orientation = 'horizontal';
 %     aveIntLine = yline(handles.axes5,mean(aveIntensity/max(aveIntensity)));
@@ -2293,10 +2293,10 @@ function makeDatasetQualityAnalysis(handles)
         for i = 1:size(Data.I,3)
             oneRow = Data.seg(j).LRimage(:,i);
             AveInt(1,i) = mean(oneRow);
-            SNR(1,i) = mean(oneRow)/std(oneRow);
+            COV(1,i) = std(oneRow)/mean(oneRow);
         end
         DatasetAveInt(1,j) = mean(AveInt/max(AveInt));
-        DatasetAveSNR(1,j) = mean(SNR/max(SNR));
+        DatasetAveSNR(1,j) = mean(COV/max(COV));
     end
     
     DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
