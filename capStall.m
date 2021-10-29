@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 24-Oct-2021 22:45:14
+% Last Modified by GUIDE v2.5 29-Oct-2021 12:07:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1847,8 +1847,6 @@ if isfield(temp_struct,'seg')
     Data.seg = temp_struct.seg;
     if isfield(Data.seg,'LRimage')
         makeSegLengthHistogram(handles);
-        makeSegQualityAnalysis(handles);
-        makeDatasetQualityAnalysis(handles);
     end
 end
 if isfield(temp_struct,'Int_ts')
@@ -1867,8 +1865,8 @@ end
 if isfield(temp_struct,'ValidationFlag')
    Data.ValidationFlag = temp_struct.ValidationFlag; 
 end 
-if isfield(temp_struct,'seglengthAnalysis')
-    Data.seglengthAnalysis = temp_struct.seglengthAnalysis; 
+if isfield(temp_struct,'segAnalysis')
+    Data.segAnalysis = temp_struct.segAnalysis; 
 end
 draw(hObject, eventdata, handles);
 
@@ -1914,9 +1912,9 @@ if isfield(Data,'ValidationFlag')
     ValidationFlag = Data.ValidationFlag;
     save([pathname filename],'ValidationFlag','-append');
 end 
-if isfield(Data,'seglengthAnalysis')
-    seglengthAnalysis = Data.seglengthAnalysis;
-    save([pathname filename],'seglengthAnalysis','-append');
+if isfield(Data,'segAnalysis')
+    segAnalysis = Data.segAnalysis;
+    save([pathname filename],'segAnalysis','-append');
 end
 
 
@@ -2245,74 +2243,88 @@ function makeSegLengthHistogram(handles)
     handles.axes4.XAxis.TickValues = 0:5:max(pixelLength)+2;
     handles.axes4.YAxis.Label.String = 'Num of Capillary';
     handles.axes4.YAxis.FontWeight = 'Bold';
-    cutoffLine = xline(handles.axes4,str2num(handles.pixelCutofflengthValue.String)+1);
-    cutoffLine.Color = 'r';
-    cutoffLine.LineWidth = 2;
+    updateSegQualityLength(handles.axes4,str2num(handles.pixelCutofflengthValue.String)+1,'r')
     handles.NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.pixelCutofflengthValue.String)));
     grid on
-    Data.seglengthAnalysis.cutoff = str2num(handles.pixelCutofflengthValue.String);
-    Data.seglengthAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=5));
+    Data.segAnalysis.cutoff = str2num(handles.pixelCutofflengthValue.String);
+    Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=5));
+    
+    if ~isfield(Data.segAnalysis,'DatasetAveInt') && ~isfield(Data.segAnalysis,'DatasetAveSNR')
+        for j = 1:length(Data.seg)
+            for i = 1:size(Data.I,3)
+                oneRow = Data.seg(j).LRimage(:,i);
+                Data.segAnalysis.AveIntensity(j,i) = mean(oneRow);
+                Data.segAnalysis.AveCOV(j,i) = mean(oneRow)/std(oneRow);
+            end
+            Data.segAnalysis.DatasetAveInt(j,1) = mean(Data.segAnalysis.AveIntensity(j,:)/max(Data.segAnalysis.AveIntensity(j,:)));
+            Data.segAnalysis.DatasetAveCOV(j,1) = mean(Data.segAnalysis.AveCOV(j,:)/max(Data.segAnalysis.AveCOV(j,:)));
+        end
+    end
     
 function makeSegQualityAnalysis(handles)
     global Data
     delete(handles.axes5.Children)
     handles.axes5.NextPlot = 'add';
     seg_no = str2double(get(handles.edit_segno,'string'));
-    for i = 1:size(Data.I,3)
-        oneRow = Data.seg(seg_no).LRimage(:,i);
-        aveIntensity(1,i) = mean(oneRow);
-        COV(1,i) = std(oneRow)/mean(oneRow);
-    end
-    IntHandle = plot(handles.axes5,1:size(Data.I,3),aveIntensity/max(aveIntensity),'-o','LineWidth',1,'MarkerSize',2);
+    LegendString = {};
+    
+    if handles.checkbox_IntensityDisp.Value == 1
+        aveIntensity = Data.segAnalysis.AveIntensity(seg_no,:);
+        IntHandle = plot(handles.axes5,1:size(Data.I,3),aveIntensity/max(aveIntensity),'-o','LineWidth',1,'MarkerSize',2);
         IntHandle.Color = 'r';
-    SNRHandle = plot(handles.axes5,1:size(Data.I,3),COV/max(COV),'-o','LineWidth',1,'MarkerSize',2);
-        SNRHandle.Color = 'g';
-        handles.axes5.XAxis.Label.String = 'Slice Num';
-        handles.axes5.XAxis.FontWeight = 'Bold';
-        handles.axes5.XAxis.TickValues = linspace(0,350,15);
-        handles.axes5.YAxis.FontSize = 10;
-        handles.axes5.YAxis.FontWeight = 'Bold';
-        handles.axes5.YAxis.TickValues = linspace(0,1,6);
-    lgd = legend(handles.axes5,["Normalized Ave Intensity: " + num2str(mean(aveIntensity/max(aveIntensity)))],...
-                               ["Normalized Ave COV: "+ num2str(mean(COV/max(COV)))]);
-        lgd.Location = 'northoutside';
-        lgd.Orientation = 'horizontal';
-%     aveIntLine = yline(handles.axes5,mean(aveIntensity/max(aveIntensity)));
-%         aveLine.Color = 't';
-%         aveLine.LineWidth = 2;
-%     aveSNRLine = yline(handles.axes5,mean(aveIntensity/max(aveIntensity)));
-%         aveSNRLine.Color = 'g';
-%         aveSNRLine.LineWidth = 2;
+        LegendString{1,end+1} = "Normalized Ave Intensity: " + num2str(mean(aveIntensity/max(aveIntensity)));
+    end
+    if handles.checkbox_COVDisp.Value == 1
+        COV = Data.segAnalysis.AveCOV(seg_no,:);
+        COVHandle = plot(handles.axes5,1:size(Data.I,3),COV/max(COV),'-o','LineWidth',1,'MarkerSize',2);
+        COVHandle.Color = 'g';
+        LegendString{1,end+1} = "Normalized Ave 1/COV: "+ num2str(mean(COV/max(COV)));
+    end
+    handles.axes5.XAxis.Label.String = 'Slice Num';
+    handles.axes5.XAxis.FontWeight = 'Bold';
+    handles.axes5.XAxis.TickValues = linspace(0,350,15);
+    handles.axes5.YAxis.FontSize = 10;
+    handles.axes5.YAxis.FontWeight = 'Bold';
+    handles.axes5.YAxis.TickValues = linspace(0,1,6);
+
+    if ~isempty(LegendString)
+        lgd = legend(handles.axes5,LegendString);
+            lgd.Location = 'northoutside';
+            lgd.Orientation = 'horizontal';
+    end
 
 function makeDatasetQualityAnalysis(handles)
     global Data
     delete(handles.axes6.Children)
     handles.axes6.NextPlot = 'add';
     seg_no = str2double(get(handles.edit_segno,'string'));
-    for j = 1:length(Data.seg)
-        for i = 1:size(Data.I,3)
-            oneRow = Data.seg(j).LRimage(:,i);
-            AveInt(1,i) = mean(oneRow);
-            COV(1,i) = std(oneRow)/mean(oneRow);
-        end
-        DatasetAveInt(1,j) = mean(AveInt/max(AveInt));
-        DatasetAveSNR(1,j) = mean(COV/max(COV));
-    end
     
-    DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
-        DatasetIntHist.FaceAlpha = 0.5;
-        DatasetIntHist.FaceColor = 'r';
-    DatasetSNRHist = histogram(handles.axes6,DatasetAveSNR,linspace(0,1,21));
-        DatasetSNRHist.FaceAlpha = 0.5;
-        DatasetSNRHist.FaceColor = 'g';
+    if handles.checkbox_IntensityDisp.Value == 1
+        DatasetAveInt = Data.segAnalysis.DatasetAveInt;
+        DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
+            DatasetIntHist.FaceAlpha = 0.5;
+            DatasetIntHist.FaceColor = 'r';
+            
+        updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveInt(seg_no,1),'r')
+    end
+
+    if handles.checkbox_COVDisp.Value == 1
+        DatasetAveCOV = Data.segAnalysis.DatasetAveCOV;
+        DatasetSNRHist = histogram(handles.axes6,DatasetAveCOV,linspace(0,1,21));
+            DatasetSNRHist.FaceAlpha = 0.5;
+            DatasetSNRHist.FaceColor = 'g';
+        updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveCOV(seg_no,1),'g')
+    end
+   
         handles.axes6.XAxis.Limits = [0,1];
         handles.axes6.XAxis.TickValues = linspace(0,1,11);
         handles.axes6.XAxis.Label.String = 'Normalized Average';
         handles.axes6.XAxis.FontWeight = 'Bold';
         handles.axes6.YAxis.Label.String = 'Num of Capillary';
         handles.axes6.YAxis.FontWeight = 'Bold';
-    IntLine = xline(handles.axes6,DatasetAveInt(1,seg_no),'r','LineWidth',2);
-    SNRLine = xline(handles.axes6,DatasetAveSNR(1,seg_no),'g','LineWidth',2);
+
+function updateSegQualityLength(axes,AveNum,Color)
+    Line = xline(axes,AveNum,Color,'LineWidth',2);
 
 function updateStallandFrame(handles, mov_dir)
 
@@ -2360,8 +2372,8 @@ end
 function SkipAllDisplay(handles)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-if isfield(Data,'seglengthAnalysis')
-    if ismember(seg_no,Data.seglengthAnalysis.capNum)
+if isfield(Data,'segAnalysis')
+    if ismember(seg_no,Data.segAnalysis.capNum)
         handles.pushbutton_SkipShortSeg.Visible = 'on';
         handles.pushbutton_unSkipShortSeg.Visible = 'on';
     else
@@ -2531,7 +2543,7 @@ if isfield(Data,'I')
     if isfield(Data,'seg')
         if strcmpi(KeyPressed,"uparrow") % Previous Cap
             pushbutton_prevseg_Callback(hObject, eventdata, handles);
-            disp('Last Capillary')
+            disp('Previous Capillary')
         end
 
         if strcmpi(KeyPressed,"downarrow") % Next Cap
@@ -2542,7 +2554,7 @@ if isfield(Data,'I')
     
     if strcmpi(KeyPressed,"leftarrow") % last image
         pushbutton_moveleft_Callback(hObject, eventdata, handles);
-        disp('Last Image')
+        disp('Previous Image')
     end
 
     if strcmpi(KeyPressed,"rightarrow") % next image
@@ -2592,4 +2604,37 @@ if isfield(Data,'I')
 else
     disp('void')
     return
+end
+
+
+% --- Executes on button press in checkbox_IntensityDisp.
+function checkbox_IntensityDisp_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_IntensityDisp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_IntensityDisp
+global Data
+if isfield(Data,'segAnalysis')
+    makeSegQualityAnalysis(handles)
+    makeDatasetQualityAnalysis(handles)
+else
+    handles.checkbox_COVDisp.Value = 0;
+    handles.checkbox_IntensityDisp.Value = 0; 
+end
+
+% --- Executes on button press in checkbox_COVDisp.
+function checkbox_COVDisp_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_COVDisp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_COVDisp
+global Data
+if isfield(Data,'segAnalysis')
+    makeSegQualityAnalysis(handles)
+    makeDatasetQualityAnalysis(handles)
+else
+    handles.checkbox_COVDisp.Value = 0;
+    handles.checkbox_IntensityDisp.Value = 0; 
 end
