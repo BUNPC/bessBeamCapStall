@@ -2355,16 +2355,14 @@ if ~isempty(possible_idx)
     end
     if ~isempty(idx_to_move)
 %         idx_to_move = possible_idx(idx(1));
+        seg_no_before = seg_no;
         [frame_no, seg_no] = ind2sub(size(Data.StallingMatrix'),idx_to_move);
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
-        makeSegQualityAnalysis(handles);
-        if handles.checkbox_IntensityDisp.Value == 1
-            updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveInt(seg_no,1),'r')
-        end
-        if handles.checkbox_COVDisp.Value == 1
-            updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveCOV(seg_no,1),'g')
+        if seg_no_before ~= seg_no
+            makeSegQualityAnalysis(handles);
+            makeDatasetQualityAnalysis(handles)
         end
         (handles);
         draw([], [], handles);
