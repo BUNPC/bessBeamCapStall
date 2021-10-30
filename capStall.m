@@ -820,7 +820,7 @@ end
 %     Data.pts1 = [x y z];
 %     Data.count = 1;
 % end
-    
+%     
 % if isfield(Data,'deletedpts')
 %     if(isempty(Data.deletedpts) == 0)
 %         if rem(Data.deletedpts(1),3) == 1
@@ -879,10 +879,10 @@ end
 %         Data.pts3(idx,:) = [x y z];
 %     end
 % end
-draw(hObject, eventdata, handles);
-if isfield(Data,'sliderobjectZ')
-    uicontrol(Data.sliderobjectZ);
-end
+% draw(hObject, eventdata, handles);
+% if isfield(Data,'sliderobjectZ')
+%     uicontrol(Data.sliderobjectZ);
+% end
 
 
 % --- Executes on slider movement.
@@ -1643,11 +1643,7 @@ function crossCorrVals = correlateLT(LRimage,smoothFactor)
 %        end
 %    end
 %    draw(hObject, eventdata, handles);
-    
-    
-    
-
-
+   
 
 function edit_segno_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_segno (see GCBO)
