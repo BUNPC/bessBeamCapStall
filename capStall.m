@@ -2360,6 +2360,8 @@ if ~isempty(possible_idx)
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
+        makeSegQualityAnalysis(handles);
+        makeDatasetQualityAnalysis(handles);
         (handles);
         draw([], [], handles);
     end
@@ -2537,12 +2539,12 @@ global Data
 if isfield(Data,'I')
     KeyPressed = eventdata.Key;
     if isfield(Data,'seg')
-        if strcmpi(KeyPressed,"uparrow") % Previous Cap
+        if strcmpi(KeyPressed,"a") % Previous Cap
             pushbutton_prevseg_Callback(hObject, eventdata, handles);
             disp('Previous Capillary')
         end
 
-        if strcmpi(KeyPressed,"downarrow") % Next Cap
+        if strcmpi(KeyPressed,"d") % Next Cap
             pushbutton_nextseg_Callback(hObject, eventdata, handles);
             disp('Next Capillary')
         end
@@ -2572,12 +2574,12 @@ if isfield(Data,'I')
 
     % Validation Use
     if ~strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
-        if strcmpi(KeyPressed,"a") % Prev
+        if strcmpi(KeyPressed,"uparrow") % Prev
             pushbutton_prevStallforVerification_Callback(hObject, eventdata, handles);
             disp('Previous Case for validation')
         end
 
-        if strcmpi(KeyPressed,"d") % Next
+        if strcmpi(KeyPressed,"downarrow") % Next
             pushbutton_nextStallforVerification_Callback(hObject, eventdata, handles);
             disp('Next Case for validation')
         end
