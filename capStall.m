@@ -2300,7 +2300,6 @@ function makeDatasetQualityAnalysis(handles)
         DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
             DatasetIntHist.FaceAlpha = 0.5;
             DatasetIntHist.FaceColor = 'r';
-            
         updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveInt(seg_no,1),'r')
     end
 
@@ -2361,7 +2360,12 @@ if ~isempty(possible_idx)
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
         makeSegQualityAnalysis(handles);
-        makeDatasetQualityAnalysis(handles);
+        if handles.checkbox_IntensityDisp.Value == 1
+            updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveInt(seg_no,1),'r')
+        end
+        if handles.checkbox_COVDisp.Value == 1
+            updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveCOV(seg_no,1),'g')
+        end
         (handles);
         draw([], [], handles);
     end
