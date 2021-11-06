@@ -433,7 +433,7 @@ if isfield(Data,'seg') && isfield(Data.seg,'LRimage')
 %     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
 end
 
-
+%SkipAllDisplay(handles);
 Data.handles =  handles;
 Data.hObject =  hObject;
 Data.eventdata = eventdata;
@@ -2326,7 +2326,7 @@ function updateStallandFrame(handles, mov_dir)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
 frame_no = str2double(get(handles.edit_volnumber,'string'));
-SkipAllDisplay(handles);
+
 if get(handles.radiobutton_flasePositives,'Value')
     possible_idx = find(Data.StallingMatrix' == 0 & Data.AutoStallingMatrix' == 1 & Data.ValidationFlag' == 0);
 elseif get(handles.radiobutton_falseNegatives,'Value')
@@ -2368,6 +2368,7 @@ if ~isempty(possible_idx)
         draw([], [], handles);
     end
 end
+SkipAllDisplay(handles);
 
 function SkipAllDisplay(handles)
 global Data
