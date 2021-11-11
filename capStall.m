@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 11-Nov-2021 12:49:16
+% Last Modified by GUIDE v2.5 11-Nov-2021 16:43:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2181,6 +2181,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
     if isfield(Data,'GTStallingMatrix') && isfield(Data,'AutoStallingMatrix')
         set(handles.menu_validateStalls,'Checked','on')
         set(handles.uipanel_validationPanel,'Visible','on')
+        set(handles.LRControlPanel,'Visible','on')
     end
     if isfield(Data,'seg')
         if isfield(Data.seg,'LRimage')
@@ -2221,6 +2222,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
 else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
+    set(handles.LRControlPanel,'Visible','off')
     delete(handles.axes4.Children)
     delete(handles.axes5.Children)
     delete(handles.axes6.Children)
@@ -2502,7 +2504,6 @@ function pushbutton_SkipShortSeg_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-frame_no = str2double(get(handles.edit_volnumber,'string'));
 if isfield(Data,'GTStallingMatrix')
     Data.GTStallingMatrix(seg_no,:) = 3;
     Data.ValidationFlag(seg_no,:) = 1;
@@ -2520,8 +2521,20 @@ seg_no = str2double(get(handles.edit_segno,'string'));
 if isfield(Data,'GTStallingMatrix')
     Data.GTStallingMatrix(seg_no,:) = 0;
     Data.ValidationFlag(seg_no,:) = 0;
+    
+    % When unskip, check for human and autostall matrix again, write
+    % GTstalling and Validationflag to be 1 if match
+    Manual_StallIndex = Data.StallingMatrix(seg_no,:) == 1;
+    Auto_StallIndex = Data.AutoStallingMatrix(seg_no,:) == 1;
+    
+    % when munual matches auto = 1, GT = 1, flag = 1
+    % when manula matches auto = 0, GT = 0, flag = 1
+    Data.ValidationFlag(seg_no,:) = Manual_StallIndex == Auto_StallIndex;
+    Data.GTStallingMatrix(seg_no,:) = ...
+        Data.StallingMatrix(seg_no,:) == 1 &...
+        Data.AutoStallingMatrix(seg_no,:) == 1;
 end
-
+updateStallandFrame(handles, 'Prev')
 
 % --- Executes during object creation, after setting all properties.
 function NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
@@ -2649,3 +2662,61 @@ function checkbox_Axe2displayCurrentSegment_Callback(hObject, eventdata, handles
 
 % Hint: get(hObject,'Value') returns toggle state of Axe2displayCurrentSegment
 draw(hObject, eventdata, handles)
+
+
+% --- Executes on button press in pushbutton_unSkipRange.
+function pushbutton_unSkipRange_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_unSkipRange (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+start_frame = str2double(handles.Editbox_SkippingRangeStart.String);
+end_frame = str2double(handles.Editbox_SkippingRangeEnd.String);
+if end_frame <= start_frame
+    error('Ending frame is before Starting frame! Please enter the correct range!')
+else
+    if isfield(Data,'GTStallingMatrix')
+        Data.GTStallingMatrix(seg_no,start_frame:end_frame) = 0;
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = 0;
+        
+        % When unskip, check for human and autostall matrix again, write
+        % GTstalling and Validationflag to be 1 if match
+        Manual_StallIndex = Data.StallingMatrix(seg_no,start_frame:end_frame) == 1;
+        Auto_StallIndex = Data.AutoStallingMatrix(seg_no,start_frame:end_frame) == 1;
+       
+        % when munual matches auto = 1, GT = 1, flag = 1
+        % when manula matches auto = 0, GT = 0, flag = 1
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = Manual_StallIndex == Auto_StallIndex; 
+        Data.GTStallingMatrix(seg_no,start_frame:end_frame) = ...
+            Data.StallingMatrix(seg_no,start_frame:end_frame) == 1 &...
+            Data.AutoStallingMatrix(seg_no,start_frame:end_frame) == 1;
+        
+        disp("Frame " + num2str(start_frame) + " to Frame " + num2str(end_frame) ...
+            + " are unskipped on Capillary " + num2str(seg_no) + "!");
+    end
+    updateStallandFrame(handles, 'Prev')
+end
+
+
+% --- Executes on button press in pushbutton_SkipRange.
+function pushbutton_SkipRange_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_SkipRange (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+start_frame = str2double(handles.Editbox_SkippingRangeStart.String);
+end_frame = str2double(handles.Editbox_SkippingRangeEnd.String);
+if end_frame <= start_frame
+    error('Ending frame is before Starting frame! Please enter the correct range!')
+else
+    if isfield(Data,'GTStallingMatrix')
+        Data.GTStallingMatrix(seg_no,start_frame:end_frame) = 3;
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = 1;
+        disp("Frame " + num2str(start_frame) + " to Frame " + num2str(end_frame) +...
+            " are skipped on Capillary " + num2str(seg_no) + "!");
+    end
+    updateStallandFrame(handles, 'Next')
+end
+
