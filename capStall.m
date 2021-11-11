@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 29-Oct-2021 12:07:07
+% Last Modified by GUIDE v2.5 11-Nov-2021 12:49:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -267,7 +267,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
     end
 end
 
-if handles.displayCurrentSegment.Value == 1
+if handles.Axe1displayCurrentSegment.Value == 1
     if isfield(Data.seg,'pos')
         hold on
         if isfield(Data.seg(seg_no),'frame_seg_pos')
@@ -277,7 +277,7 @@ if handles.displayCurrentSegment.Value == 1
         end
         hold off
     else
-        handles.displayCurrentSegment.Value = 0;
+        handles.Axe1displayCurrentSegment.Value = 0;
         error('Warning: No segments available')
     end
 end
@@ -305,7 +305,7 @@ if isfield(Data,'seg')
         axis image;
         xlim([Xmin Xmax])
         ylim([Ymin Ymax])
-        if handles.displayCurrentSegment.Value == 1
+        if handles.Axe2displayCurrentSegment.Value == 1
             if isfield(Data.seg,'pos')
                 hold on
                 if isfield(Data.seg(seg_no),'frame_seg_pos')
@@ -1822,7 +1822,7 @@ function menu_loadResults_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 global Data;
-handles.displayCurrentSegment.Value = 0;
+handles.Axe1displayCurrentSegment.Value = 0;
 delete(handles.axes3.Children)
 delete(handles.axes4.Children)
 delete(handles.axes5.Children)
@@ -1856,7 +1856,7 @@ if isfield(temp_struct,'AutoStallingMatrix')
 end 
 if isfield(temp_struct,'GTStallingMatrix')
    Data.GTStallingMatrix = temp_struct.GTStallingMatrix; 
-   handles.displayCurrentSegment.Value = 1;
+   handles.Axe1displayCurrentSegment.Value = 1;
 end 
 if isfield(temp_struct,'ValidationFlag')
    Data.ValidationFlag = temp_struct.ValidationFlag; 
@@ -2462,13 +2462,13 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
 end
 
 
-% --- Executes on button press in displayCurrentSegment.
-function checkbox_displayCurrentSegment_Callback(hObject, eventdata, handles)
-% hObject    handle to displayCurrentSegment (see GCBO)
+% --- Executes on button press in Axe1displayCurrentSegment.
+function checkbox_Axe1displayCurrentSegment_Callback(hObject, eventdata, handles)
+% hObject    handle to Axe1displayCurrentSegment (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of displayCurrentSegment
+% Hint: get(hObject,'Value') returns toggle state of Axe1displayCurrentSegment
 draw(hObject, eventdata, handles)
 
 
@@ -2639,3 +2639,13 @@ else
     handles.checkbox_COVDisp.Value = 0;
     handles.checkbox_IntensityDisp.Value = 0; 
 end
+
+
+% --- Executes on button press in Axe2displayCurrentSegment.
+function checkbox_Axe2displayCurrentSegment_Callback(hObject, eventdata, handles)
+% hObject    handle to Axe2displayCurrentSegment (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Axe2displayCurrentSegment
+draw(hObject, eventdata, handles)
