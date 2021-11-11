@@ -2321,7 +2321,9 @@ function makeDatasetQualityAnalysis(handles)
         handles.axes6.YAxis.FontWeight = 'Bold';
 
 function updateSegQualityLength(axes,AveNum,Color)
-    Line = xline(axes,AveNum,Color,'LineWidth',2);
+    if ~isnan(AveNum) && AveNum >= 0
+        Line = xline(axes,AveNum,Color,'LineWidth',2);
+    end
 
 function updateStallandFrame(handles, mov_dir)
 
