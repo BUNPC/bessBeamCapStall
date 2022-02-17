@@ -2245,18 +2245,16 @@ function makeSegLengthHistogram(handles)
     handles.NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.pixelCutofflengthValue.String)));
     grid on
     Data.segAnalysis.cutoff = str2num(handles.pixelCutofflengthValue.String);
-    Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=5));
+    Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=Data.segAnalysis.cutoff));
     
-    if ~isfield(Data.segAnalysis,'DatasetAveInt') && ~isfield(Data.segAnalysis,'DatasetAveSNR')
-        for j = 1:length(Data.seg)
-            for i = 1:size(Data.I,3)
-                oneRow = Data.seg(j).LRimage(:,i);
-                Data.segAnalysis.AveIntensity(j,i) = mean(oneRow);
-                Data.segAnalysis.AveCOV(j,i) = mean(oneRow)/std(oneRow);
-            end
-            Data.segAnalysis.DatasetAveInt(j,1) = mean(Data.segAnalysis.AveIntensity(j,:)/max(Data.segAnalysis.AveIntensity(j,:)));
-            Data.segAnalysis.DatasetAveCOV(j,1) = mean(Data.segAnalysis.AveCOV(j,:)/max(Data.segAnalysis.AveCOV(j,:)));
+    for j = 1:length(Data.seg)
+        for i = 1:size(Data.I,3)
+            oneRow = Data.seg(j).LRimage(:,i);
+            Data.segAnalysis.AveIntensity(j,i) = mean(oneRow);
+            Data.segAnalysis.AveCOV(j,i) = mean(oneRow)/std(oneRow);
         end
+        Data.segAnalysis.DatasetAveInt(j,1) = mean(Data.segAnalysis.AveIntensity(j,:)/max(Data.segAnalysis.AveIntensity(j,:)));
+        Data.segAnalysis.DatasetAveCOV(j,1) = mean(Data.segAnalysis.AveCOV(j,:)/max(Data.segAnalysis.AveCOV(j,:)));
     end
     
 function makeSegQualityAnalysis(handles)
