@@ -2783,14 +2783,20 @@ if end_frame <= start_frame
     error('Ending frame is before Starting frame! Please enter the correct range!')
 else
     if isfield(Data,'ValidationFlag')
+        Data.GTStallingMatrix(seg_no,start_frame:end_frame) = 0;
         Data.ValidationFlag(seg_no,start_frame:end_frame) = 0;
         
         % When unskip, check for human and autostall matrix again, write
         % GTstalling and Validationflag to be 1 if match
         Manual_StallIndex = Data.StallingMatrix(seg_no,start_frame:end_frame) == 1;
         Auto_StallIndex = Data.AutoStallingMatrix(seg_no,start_frame:end_frame) == 1;
-     
-        Data.ValidationFlag(seg_no,start_frame:end_frame) = Manual_StallIndex == Auto_StallIndex; 
+        
+        % when munual matches auto = 1, GT = 1, flag = 1
+        % when manula matches auto = 0, GT = 0, flag = 1
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = Manual_StallIndex == Auto_StallIndex;
+        Data.GTStallingMatrix(seg_no,start_frame:end_frame) = ...
+            Data.StallingMatrix(seg_no,start_frame:end_frame) == 1 &...
+            Data.AutoStallingMatrix(seg_no,start_frame:end_frame) == 1;
         
         disp("Frame " + num2str(start_frame) + " to Frame " + num2str(end_frame) ...
             + "on Capillary " + num2str(seg_no) + " has been restored to original!");
