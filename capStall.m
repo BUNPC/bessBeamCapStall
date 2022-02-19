@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 11-Nov-2021 16:43:38
+% Last Modified by GUIDE v2.5 19-Feb-2022 13:32:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1259,13 +1259,14 @@ else
     Data.GTStallingMatrix(idx) = 1;
 end
 
-% create validation flag
+% create or update validation flag
 if isfield(Data,'ValidationFlag')
     Int_rows = length(Data.seg);
     Stall_rows = size(Data.ValidationFlag,1);
     stall_cols = size(Data.ValidationFlag,2);
     if Int_rows > Stall_rows
-       Data.ValidationFlag = [Data.ValidationFlag; zeros([Int_rows-Stall_rows stall_cols])];
+        update = Data.StallingMatrix(Int_rows+1:end,:) == Data.AutoStallingMatrix(Int_rows+1:end,:);
+        Data.ValidationFlag = [Data.ValidationFlag; update];
     end
 else
     Data.ValidationFlag = zeros(length(seg),n_frames);
@@ -2182,6 +2183,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
         set(handles.menu_validateStalls,'Checked','on')
         set(handles.uipanel_validationPanel,'Visible','on')
         set(handles.LRControlPanel,'Visible','on')
+        set(handles.ValidationFlagPanel,'Visible','on')
     end
     if isfield(Data,'seg')
         if isfield(Data.seg,'LRimage')
@@ -2223,6 +2225,7 @@ else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
     set(handles.LRControlPanel,'Visible','off')
+    set(handles.ValidationFlagPanel,'Visible','off')
     delete(handles.axes4.Children)
     delete(handles.axes5.Children)
     delete(handles.axes6.Children)
@@ -2720,3 +2723,98 @@ else
     updateStallandFrame(handles, 'Next')
 end
 
+
+
+function VFlag_Start_Callback(hObject, eventdata, handles)
+% hObject    handle to VFlag_Start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of VFlag_Start as text
+%        str2double(get(hObject,'String')) returns contents of VFlag_Start as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function VFlag_Start_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to VFlag_Start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function VFlag_End_Callback(hObject, eventdata, handles)
+% hObject    handle to VFlag_End (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of VFlag_End as text
+%        str2double(get(hObject,'String')) returns contents of VFlag_End as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function VFlag_End_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to VFlag_End (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton_unsetVFlag.
+function pushbutton_unsetVFlag_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_unsetVFlag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+start_frame = str2double(handles.VFlag_Start.String);
+end_frame = str2double(handles.VFlag_End.String);
+if end_frame <= start_frame
+    error('Ending frame is before Starting frame! Please enter the correct range!')
+else
+    if isfield(Data,'ValidationFlag')
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = 0;
+        
+        % When unskip, check for human and autostall matrix again, write
+        % GTstalling and Validationflag to be 1 if match
+        Manual_StallIndex = Data.StallingMatrix(seg_no,start_frame:end_frame) == 1;
+        Auto_StallIndex = Data.AutoStallingMatrix(seg_no,start_frame:end_frame) == 1;
+     
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = Manual_StallIndex == Auto_StallIndex; 
+        
+        disp("Frame " + num2str(start_frame) + " to Frame " + num2str(end_frame) ...
+            + "on Capillary " + num2str(seg_no) + " has been restored to original!");
+    end
+    updateStallandFrame(handles, 'Prev')
+end
+
+
+% --- Executes on button press in pushbutton_setVFlag.
+function pushbutton_setVFlag_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_setVFlag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+start_frame = str2double(handles.VFlag_Start.String);
+end_frame = str2double(handles.VFlag_End.String);
+if end_frame <= start_frame
+    error('Ending frame is before Starting frame! Please enter the correct range!')
+else
+    if isfield(Data,'ValidationFlag')
+        Data.ValidationFlag(seg_no,start_frame:end_frame) = 1;
+        disp("Frame " + num2str(start_frame) + " to Frame " + num2str(end_frame) +...
+            " on Capillary " + num2str(seg_no) + " has been Validated!");
+    end
+    updateStallandFrame(handles, 'Next')
+end
