@@ -40,7 +40,7 @@ if strcmp(answer,'Yes')
     end
     
     if isfield(Data,'seg')
-        if size(Data.seg,1) >= idx
+        if size(Data.seg,2) >= idx
             Data.seg(:,idx) = [];
         end
     end
@@ -61,6 +61,19 @@ if strcmp(answer,'Yes')
         if size(Data.GTStallingMatrix,1) >= idx
             Data.GTStallingMatrix(idx,:) = [];
         end
+    end
+    
+    if isfield(Data,'ValidationFlag')
+        if size(Data.ValidationFlag,1) >= idx
+            Data.ValidationFlag(idx,:) = [];
+        end
+    end
+    
+    if isfield(Data,'segAnalysis')
+        Data.segAnalysis.AveIntensity(idx,:) = [];
+        Data.segAnalysis.AveCOV(idx,:) = [];
+        Data.segAnalysis.DatasetAveInt(idx,:) = [];
+        Data.segAnalysis.DatasetAveCOV(idx,:) = [];
     end
     
     handles = Data.handles;

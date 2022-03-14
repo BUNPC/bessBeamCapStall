@@ -1,7 +1,7 @@
 function varargout = capStall(varargin)
 % CAPSTALL MATLAB code for capStall.fig
 %      CAPSTALL, by itself, creates a new CAPSTALL or raises the existing
-%      singleton*.
+%      singleton*.ans
 %
 %      H = CAPSTALL returns the handle to a new CAPSTALL or the handle to
 %      the existing singleton*.
@@ -96,10 +96,12 @@ if exist('Data','var')
     end
 end
 
-[filename,pathname] = uigetfile({'*.mat;*.tiff;*.tif'},'Please select the Angiogram Data');
+[filename,pathname] = uigetfile({'*.tiff;*.tif'},'Please select the Angiogram Data');
 if filename == 0
     return
 end
+handles.Imagepath.String = [pathname filename];
+handles.Imagepath.Visible = 'on';
 h = waitbar(0,'Please wait... loading the data');
 [~,~,ext] = fileparts(filename);
 
@@ -1834,6 +1836,8 @@ if filename == 0
     return
 end
 temp_struct = load([pathname filename]);
+handles.Datapath.String = [pathname filename];
+handles.Datapath.Visible = 'on';
 if isfield(temp_struct,'Cap')
     Data.Cap = temp_struct.Cap;
 end
@@ -1877,6 +1881,7 @@ function menu_saveresults_Callback(hObject, eventdata, handles)
 global Data
 
 [filename, pathname] = uiputfile('*.mat');
+
 if isfield(Data,'Cap')
     Cap = Data.Cap;
     save([pathname filename],'Cap');
@@ -2251,7 +2256,7 @@ function makeSegLengthHistogram(handles)
     Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=Data.segAnalysis.cutoff));
     
     for j = 1:length(Data.seg)
-        for i = 1:size(Data.I,3)
+        for i = 1:350
             oneRow = Data.seg(j).LRimage(:,i);
             Data.segAnalysis.AveIntensity(j,i) = mean(oneRow);
             Data.segAnalysis.AveCOV(j,i) = mean(oneRow)/std(oneRow);
