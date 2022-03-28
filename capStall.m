@@ -1238,8 +1238,8 @@ else
 end
 
 % Find stalls using cross correlation
-smoothFactor = 6;
-corrThresh = 0.7;
+smoothFactor = 1;
+corrThresh = 0.85;
 Data.AutoStallingMatrix = zeros(length(seg),n_frames);
 for i = 1:length(seg)
     crossVals = correlateLT(seg(i).LRimage,smoothFactor);
