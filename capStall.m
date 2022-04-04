@@ -1267,11 +1267,11 @@ if isfield(Data,'ValidationFlag')
     Stall_rows = size(Data.ValidationFlag,1);
     stall_cols = size(Data.ValidationFlag,2);
     if Int_rows > Stall_rows
-        update = Data.StallingMatrix(Int_rows+1:end,:) == Data.AutoStallingMatrix(Int_rows+1:end,:);
+        update = Data.StallingMatrix(Stall_rows+1:end,:) == Data.AutoStallingMatrix(Stall_rows+1:end,:);
         Data.ValidationFlag = [Data.ValidationFlag; update];
     end
 else
-    Data.ValidationFlag = zeros(length(seg),n_frames);
+    Data.ValidationFlag = zeros(length(Data.seg),n_frames);
     idx = find(Data.StallingMatrix == 1 & Data.AutoStallingMatrix==1);
     Data.ValidationFlag(idx) = 1;
     idx = find(Data.StallingMatrix == 0 & Data.AutoStallingMatrix==0);
