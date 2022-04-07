@@ -1261,7 +1261,7 @@ else
     Data.GTStallingMatrix(idx) = 1;
 end
 
-% create or update validation flag
+% create or update Validation Flag
 if isfield(Data,'ValidationFlag')
     Int_rows = length(Data.seg);
     Stall_rows = size(Data.ValidationFlag,1);
