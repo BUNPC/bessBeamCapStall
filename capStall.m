@@ -15,14 +15,14 @@ function varargout = capStall(varargin)
 %      unrecognized property name or invalid value makes property application
 %      stop.  All inputs are passed to capStall_OpeningFcn via varargin.
 %
-%      *See GUI Options on GUIDE's Tools menu_loadresults.  Choose "GUI allows only one
+%      *See GUI Options on GUIDE's Tools menu_loaddata.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 19-Feb-2022 13:32:23
+% Last Modified by GUIDE v2.5 04-May-2022 03:22:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,8 +81,8 @@ function Untitled_1_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function menu_loaddata_Callback(hObject, eventdata, handles)
-% hObject    handle to menu_loaddata (see GCBO)
+function menu_loadImage_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_loadImage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -100,8 +100,8 @@ end
 if filename == 0
     return
 end
-handles.Imagepath.String = [pathname filename];
-handles.Imagepath.Visible = 'on';
+handles.text_Imagepath.String = [pathname filename];
+handles.text_Imagepath.Visible = 'on';
 h = waitbar(0,'Please wait... loading the data');
 [~,~,ext] = fileparts(filename);
 
@@ -242,7 +242,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
     end
 end
 
-if handles.Axe1displayCurrentSegment.Value == 1
+if handles.checkbox_Axe1displayCurrentSegment.Value == 1
     if isfield(Data.seg,'pos')
         hold on
         if isfield(Data.seg(seg_no),'frame_seg_pos')
@@ -252,7 +252,7 @@ if handles.Axe1displayCurrentSegment.Value == 1
         end
         hold off
     else
-        handles.Axe1displayCurrentSegment.Value = 0;
+        handles.checkbox_Axe1displayCurrentSegment.Value = 0;
         error('Warning: No segments available')
     end
 end
@@ -280,7 +280,7 @@ if isfield(Data,'seg')
         axis image;
         xlim([Xmin Xmax])
         ylim([Ymin Ymax])
-        if handles.Axe2displayCurrentSegment.Value == 1
+        if handles.checkbox_Axe2displayCurrentSegment.Value == 1
             if isfield(Data.seg,'pos')
                 hold on
                 if isfield(Data.seg(seg_no),'frame_seg_pos')
@@ -335,7 +335,7 @@ if isfield(Data,'seg') && isfield(Data.seg,'LRimage')
         text(yidx,xidx,'*','Color','blue','FontSize',10);
     end
     hold off
-    handles.SegLengthDisplay.String = [ num2str(x(2)-x(1)) ' Pixels' ];
+    handles.text_SegLengthDisplay.String = [ num2str(x(2)-x(1)) ' Pixels' ];
     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
     
 end
@@ -902,7 +902,6 @@ else
 end
 draw(hObject, eventdata, handles);
 makeSegLengthHistogram(handles);
-makeSegQualityAnalysis(handles);
 
 
 function crossCorrVals = correlateLT(LRimage,smoothFactor)
@@ -932,12 +931,6 @@ jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
 SkipAllDisplay(handles);
-if isfield(Data,'seg')
-    if isfield(Data.seg,'LRimage')
-        makeSegQualityAnalysis(handles);
-        makeDatasetQualityAnalysis(handles);
-    end
-end
 draw(hObject, eventdata, handles);
 
 
@@ -965,12 +958,6 @@ jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj-1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
 SkipAllDisplay(handles);
-if isfield(Data,'seg')
-    if isfield(Data.seg,'LRimage')
-        makeSegQualityAnalysis(handles);
-        makeDatasetQualityAnalysis(handles);
-    end
-end
 draw(hObject, eventdata, handles);
 
 
@@ -985,12 +972,6 @@ jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj+1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
 SkipAllDisplay(handles);
-if isfield(Data,'seg')
-    if isfield(Data.seg,'LRimage')
-        makeSegQualityAnalysis(handles);
-        makeDatasetQualityAnalysis(handles);
-    end
-end
 draw(hObject, eventdata, handles);
 
 % --- Executes on button press in radiobutton_showseg.
@@ -1055,13 +1036,13 @@ end
 
 
 % --------------------------------------------------------------------
-function menu_loadResults_Callback(hObject, eventdata, handles)
-% hObject    handle to menu_loadResults (see GCBO)
+function menu_loadData_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_loadData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 global Data;
-handles.Axe1displayCurrentSegment.Value = 0;
+handles.checkbox_Axe1displayCurrentSegment.Value = 0;
 delete(handles.axes3.Children)
 delete(handles.axes4.Children)
 delete(handles.axes5.Children)
@@ -1072,8 +1053,8 @@ if filename == 0
     return
 end
 temp_struct = load([pathname filename]);
-handles.Datapath.String = [pathname filename];
-handles.Datapath.Visible = 'on';
+handles.text_Datapath.String = [pathname filename];
+handles.text_Datapath.Visible = 'on';
 if isfield(temp_struct,'Cap')
     Data.Cap = temp_struct.Cap;
 end
@@ -1097,7 +1078,7 @@ if isfield(temp_struct,'AutoStallingMatrix')
 end 
 if isfield(temp_struct,'GTStallingMatrix')
    Data.GTStallingMatrix = temp_struct.GTStallingMatrix; 
-   handles.Axe1displayCurrentSegment.Value = 1;
+   handles.checkbox_Axe1displayCurrentSegment.Value = 1;
 end 
 if isfield(temp_struct,'ValidationFlag')
    Data.ValidationFlag = temp_struct.ValidationFlag; 
@@ -1423,23 +1404,21 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
     if isfield(Data,'GTStallingMatrix') && isfield(Data,'AutoStallingMatrix')
         set(handles.menu_validateStalls,'Checked','on')
         set(handles.uipanel_validationPanel,'Visible','on')
-        set(handles.LRControlPanel,'Visible','on')
-        set(handles.ValidationFlagPanel,'Visible','on')
+        set(handles.uipanel_Skip_Control,'Visible','on')
+        set(handles.uipanel_ValidationFlagControl,'Visible','on')
     end
     if isfield(Data,'seg')
         if isfield(Data.seg,'LRimage')
             updateStallandFrame(handles, 'NextorCurrent');
             draw(hObject, eventdata, handles);
             makeSegLengthHistogram(handles);
-            makeSegQualityAnalysis(handles);
-            makeDatasetQualityAnalysis(handles);
         end
     end
 else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
-    set(handles.LRControlPanel,'Visible','off')
-    set(handles.ValidationFlagPanel,'Visible','off')
+    set(handles.uipanel_Skip_Control,'Visible','off')
+    set(handles.uipanel_ValidationFlagControl,'Visible','off')
     delete(handles.axes4.Children)
     delete(handles.axes5.Children)
     delete(handles.axes6.Children)
@@ -1458,10 +1437,10 @@ function makeSegLengthHistogram(handles)
     handles.axes4.XAxis.TickValues = 0:5:max(pixelLength)+2;
     handles.axes4.YAxis.Label.String = 'Num of Capillary';
     handles.axes4.YAxis.FontWeight = 'Bold';
-    updateSegQualityLength(handles.axes4,str2num(handles.pixelCutofflengthValue.String)+1,'r')
-    handles.NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.pixelCutofflengthValue.String)));
+    updateSegQualityLength(handles.axes4,str2num(handles.edit_pixelCutofflengthValue.String)+1,'r')
+    handles.text_NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.edit_pixelCutofflengthValue.String)));
     grid on
-    Data.segAnalysis.cutoff = str2num(handles.pixelCutofflengthValue.String);
+    Data.segAnalysis.cutoff = str2num(handles.edit_pixelCutofflengthValue.String);
     Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=Data.segAnalysis.cutoff));
     
     for j = 1:length(Data.seg)
@@ -1474,71 +1453,6 @@ function makeSegLengthHistogram(handles)
         Data.segAnalysis.DatasetAveCOV(j,1) = mean(Data.segAnalysis.AveCOV(j,:)/max(Data.segAnalysis.AveCOV(j,:)));
     end
     
-function makeSegQualityAnalysis(handles)
-    global Data
-    delete(handles.axes5.Children)
-    handles.axes5.NextPlot = 'add';
-    seg_no = str2double(get(handles.edit_segno,'string'));
-    LegendString = {};
-    
-    if handles.checkbox_IntensityDisp.Value == 1
-        aveIntensity = Data.segAnalysis.AveIntensity(seg_no,:);
-        IntHandle = plot(handles.axes5,1:size(Data.I,3),aveIntensity/max(aveIntensity),'-o','LineWidth',1,'MarkerSize',2);
-        IntHandle.Color = 'r';
-        LegendString{1,end+1} = "Normalized Ave Intensity: " + num2str(mean(aveIntensity/max(aveIntensity)));
-    end
-    if handles.checkbox_COVDisp.Value == 1
-        COV = Data.segAnalysis.AveCOV(seg_no,:);
-        COVHandle = plot(handles.axes5,1:size(Data.I,3),COV/max(COV),'-o','LineWidth',1,'MarkerSize',2);
-        COVHandle.Color = 'g';
-        LegendString{1,end+1} = "Normalized Ave 1/COV: "+ num2str(mean(COV/max(COV)));
-    end
-    handles.axes5.XAxis.Label.String = 'Slice Num';
-    handles.axes5.XAxis.FontWeight = 'Bold';
-    handles.axes5.XAxis.TickValues = linspace(0,350,15);
-    handles.axes5.YAxis.FontSize = 10;
-    handles.axes5.YAxis.FontWeight = 'Bold';
-    handles.axes5.YAxis.TickValues = linspace(0,1,6);
-
-    if ~isempty(LegendString)
-        lgd = legend(handles.axes5,LegendString);
-            lgd.Location = 'northoutside';
-            lgd.Orientation = 'horizontal';
-    end
-
-function makeDatasetQualityAnalysis(handles)
-    global Data
-    delete(handles.axes6.Children)
-    handles.axes6.NextPlot = 'add';
-    seg_no = str2double(get(handles.edit_segno,'string'));
-    
-    if handles.checkbox_IntensityDisp.Value == 1
-        DatasetAveInt = Data.segAnalysis.DatasetAveInt;
-        DatasetIntHist = histogram(handles.axes6,DatasetAveInt,linspace(0,1,21));
-            DatasetIntHist.FaceAlpha = 0.5;
-            DatasetIntHist.FaceColor = 'r';
-        updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveInt(seg_no,1),'r')
-    end
-
-    if handles.checkbox_COVDisp.Value == 1
-        DatasetAveCOV = Data.segAnalysis.DatasetAveCOV;
-        DatasetSNRHist = histogram(handles.axes6,DatasetAveCOV,linspace(0,1,21));
-            DatasetSNRHist.FaceAlpha = 0.5;
-            DatasetSNRHist.FaceColor = 'g';
-        updateSegQualityLength(handles.axes6,Data.segAnalysis.DatasetAveCOV(seg_no,1),'g')
-    end
-   
-        handles.axes6.XAxis.Limits = [0,1];
-        handles.axes6.XAxis.TickValues = linspace(0,1,11);
-        handles.axes6.XAxis.Label.String = 'Normalized Average';
-        handles.axes6.XAxis.FontWeight = 'Bold';
-        handles.axes6.YAxis.Label.String = 'Num of Capillary';
-        handles.axes6.YAxis.FontWeight = 'Bold';
-
-function updateSegQualityLength(axes,AveNum,Color)
-    if ~isnan(AveNum) && AveNum >= 0
-        Line = xline(axes,AveNum,Color,'LineWidth',2);
-    end
 
 function updateStallandFrame(handles, mov_dir)
 
@@ -1579,10 +1493,6 @@ if ~isempty(possible_idx)
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
-        if seg_no_before ~= seg_no
-            makeSegQualityAnalysis(handles);
-            makeDatasetQualityAnalysis(handles)
-        end
         (handles);
         draw([], [], handles);
     end
@@ -1681,30 +1591,30 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'on')
 end
 
 
-% --- Executes on button press in Axe1displayCurrentSegment.
+% --- Executes on button press in checkbox_Axe1displayCurrentSegment.
 function checkbox_Axe1displayCurrentSegment_Callback(hObject, eventdata, handles)
-% hObject    handle to Axe1displayCurrentSegment (see GCBO)
+% hObject    handle to checkbox_Axe1displayCurrentSegment (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of Axe1displayCurrentSegment
+% Hint: get(hObject,'Value') returns toggle state of checkbox_Axe1displayCurrentSegment
 draw(hObject, eventdata, handles)
 
 
 
-function pixelCutofflengthValue_Callback(hObject, eventdata, handles)
-% hObject    handle to pixelCutofflengthValue (see GCBO)
+function edit_pixelCutofflengthValue_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_pixelCutofflengthValue (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of pixelCutofflengthValue as text
-%        str2double(get(hObject,'String')) returns contents of pixelCutofflengthValue as a double
+% Hints: get(hObject,'String') returns contents of edit_pixelCutofflengthValue as text
+%        str2double(get(hObject,'String')) returns contents of edit_pixelCutofflengthValue as a double
 makeSegLengthHistogram(handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function pixelCutofflengthValue_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to pixelCutofflengthValue (see GCBO)
+function edit_pixelCutofflengthValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_pixelCutofflengthValue (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1754,8 +1664,8 @@ end
 updateStallandFrame(handles, 'Prev')
 
 % --- Executes during object creation, after setting all properties.
-function NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to NumofFilteredValue (see GCBO)
+function text_NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to text_NumofFilteredValue (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1846,13 +1756,8 @@ function checkbox_IntensityDisp_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox_IntensityDisp
 global Data
-if isfield(Data,'segAnalysis')
-    makeSegQualityAnalysis(handles)
-    makeDatasetQualityAnalysis(handles)
-else
-    handles.checkbox_COVDisp.Value = 0;
-    handles.checkbox_IntensityDisp.Value = 0; 
-end
+handles.checkbox_COVDisp.Value = 0;
+handles.checkbox_IntensityDisp.Value = 0; 
 
 % --- Executes on button press in checkbox_COVDisp.
 function checkbox_COVDisp_Callback(hObject, eventdata, handles)
@@ -1862,22 +1767,17 @@ function checkbox_COVDisp_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox_COVDisp
 global Data
-if isfield(Data,'segAnalysis')
-    makeSegQualityAnalysis(handles)
-    makeDatasetQualityAnalysis(handles)
-else
-    handles.checkbox_COVDisp.Value = 0;
-    handles.checkbox_IntensityDisp.Value = 0; 
-end
+handles.checkbox_COVDisp.Value = 0;
+handles.checkbox_IntensityDisp.Value = 0; 
 
 
-% --- Executes on button press in Axe2displayCurrentSegment.
+% --- Executes on button press in checkbox_Axe2displayCurrentSegment.
 function checkbox_Axe2displayCurrentSegment_Callback(hObject, eventdata, handles)
-% hObject    handle to Axe2displayCurrentSegment (see GCBO)
+% hObject    handle to checkbox_Axe2displayCurrentSegment (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of Axe2displayCurrentSegment
+% Hint: get(hObject,'Value') returns toggle state of checkbox_Axe2displayCurrentSegment
 draw(hObject, eventdata, handles)
 
 
@@ -1888,8 +1788,8 @@ function pushbutton_unSkipRange_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-start_frame = str2double(handles.Editbox_SkippingRangeStart.String);
-end_frame = str2double(handles.Editbox_SkippingRangeEnd.String);
+start_frame = str2double(handles.edit_SkippingRangeStart.String);
+end_frame = str2double(handles.edit_SkippingRangeEnd.String);
 if end_frame <= start_frame
     error('Ending frame is before Starting frame! Please enter the correct range!')
 else
@@ -1923,8 +1823,8 @@ function pushbutton_SkipRange_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-start_frame = str2double(handles.Editbox_SkippingRangeStart.String);
-end_frame = str2double(handles.Editbox_SkippingRangeEnd.String);
+start_frame = str2double(handles.edit_SkippingRangeStart.String);
+end_frame = str2double(handles.edit_SkippingRangeEnd.String);
 if end_frame <= start_frame
     error('Ending frame is before Starting frame! Please enter the correct range!')
 else
@@ -1938,52 +1838,6 @@ else
 end
 
 
-
-function VFlag_Start_Callback(hObject, eventdata, handles)
-% hObject    handle to VFlag_Start (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of VFlag_Start as text
-%        str2double(get(hObject,'String')) returns contents of VFlag_Start as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function VFlag_Start_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to VFlag_Start (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function VFlag_End_Callback(hObject, eventdata, handles)
-% hObject    handle to VFlag_End (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of VFlag_End as text
-%        str2double(get(hObject,'String')) returns contents of VFlag_End as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function VFlag_End_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to VFlag_End (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
 % --- Executes on button press in pushbutton_unsetVFlag.
 function pushbutton_unsetVFlag_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_unsetVFlag (see GCBO)
@@ -1991,8 +1845,8 @@ function pushbutton_unsetVFlag_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-start_frame = str2double(handles.VFlag_Start.String);
-end_frame = str2double(handles.VFlag_End.String);
+start_frame = str2double(handles.edit_VFlag_Start.String);
+end_frame = str2double(handles.edit_VFlag_End.String);
 if end_frame <= start_frame
     error('Ending frame is before Starting frame! Please enter the correct range!')
 else
@@ -2026,8 +1880,8 @@ function pushbutton_setVFlag_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 seg_no = str2double(get(handles.edit_segno,'string'));
-start_frame = str2double(handles.VFlag_Start.String);
-end_frame = str2double(handles.VFlag_End.String);
+start_frame = str2double(handles.edit_VFlag_Start.String);
+end_frame = str2double(handles.edit_VFlag_End.String);
 if end_frame <= start_frame
     error('Ending frame is before Starting frame! Please enter the correct range!')
 else
@@ -2038,3 +1892,17 @@ else
     end
     updateStallandFrame(handles, 'Next')
 end
+
+
+% --- Executes on button press in pushbutton_Unset_GT.
+function pushbutton_Unset_GT_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_Unset_GT (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton_Set_GT.
+function pushbutton_Set_GT_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_Set_GT (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
