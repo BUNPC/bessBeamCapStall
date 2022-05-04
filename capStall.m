@@ -421,6 +421,18 @@ if isfield(Data,'sliderobject')
     uicontrol(Data.sliderobject);
 end
 
+% --- Executes during object creation, after setting all properties.
+function edit_volnumber_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_volnumber (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
 
 % --- Executes on button press in pushbutton_moveleft.
 function pushbutton_moveleft_Callback(hObject, eventdata, handles)
@@ -575,6 +587,20 @@ if isfield(Data,'sliderobjectZ')
 end
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_MIPstartidx_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MIPstartidx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
 function edit_MIPnofframes_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_MIPnofframes (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -595,6 +621,20 @@ set(handles.edit_MIPnofframes,'String',num2str(jj));
 draw(hObject, eventdata, handles);
 if isfield(Data,'sliderobjectZ')
     uicontrol(Data.sliderobjectZ);
+end
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MIPnofframes_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MIPnofframes (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
 
 
@@ -894,6 +934,19 @@ SkipAllDisplay(handles);
 draw(hObject, eventdata, handles);
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_segno_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_segno (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 % --- Executes on button press in pushbutton_prevseg.
 function pushbutton_prevseg_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_prevseg (see GCBO)
@@ -944,6 +997,19 @@ function edit_MaxI_Callback(hObject, eventdata, handles)
 draw(hObject, eventdata, handles);
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_MaxI_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MaxI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 
 function edit_MinI_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_MinI (see GCBO)
@@ -954,6 +1020,19 @@ function edit_MinI_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_MinI as a double
 
 draw(hObject, eventdata, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MinI_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MinI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 % --------------------------------------------------------------------
@@ -1076,6 +1155,20 @@ set(handles.edit_Xmin,'String',num2str(Xmin))
 draw(hObject, eventdata, handles)
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_Xmin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Xmin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
 function edit_Xmax_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_Xmax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1091,6 +1184,19 @@ Xmax = str2double(get(hObject,'String'));
 Xmax = min(max(Xmax,Xmin+1),Sx);
 set(handles.edit_Xmax,'String',num2str(Xmax))
 draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Xmax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Xmax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 
@@ -1112,6 +1218,20 @@ set(handles.edit_Ymin,'String',num2str(Ymin))
 draw(hObject, eventdata, handles)
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_Ymin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Ymin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
 function edit_Ymax_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_Ymax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1127,7 +1247,21 @@ Ymin = str2double(get(handles.edit_Ymin,'String'));
 Ymax = str2double(get(hObject,'String'));
 Ymax = min(max(Ymax,Ymin+1),Sy);
 set(handles.edit_Ymax,'String',num2str(Ymax))
+
 draw(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_Ymax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_Ymax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 % --- Executes on button press in pushbutton_selectZoomInArea.
@@ -1184,6 +1318,19 @@ function edit_deltaX_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_deltaX as a double
 draw(hObject, eventdata, handles)
 
+% --- Executes during object creation, after setting all properties.
+function edit_deltaX_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_deltaX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 
 function edit_deltaY_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_deltaY (see GCBO)
@@ -1193,6 +1340,18 @@ function edit_deltaY_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_deltaY as text
 %        str2double(get(hObject,'String')) returns contents of edit_deltaY as a double
 draw(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function edit_deltaY_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_deltaY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 % --- Executes on button press in radiobutton_flasePositives.
@@ -1453,6 +1612,17 @@ function edit_pixelCutofflengthValue_Callback(hObject, eventdata, handles)
 makeSegLengthHistogram(handles)
 
 
+% --- Executes during object creation, after setting all properties.
+function edit_pixelCutofflengthValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_pixelCutofflengthValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 % --- Executes on button press in pushbutton_SkipShortSeg.
 function pushbutton_SkipShortSeg_Callback(hObject, eventdata, handles)
@@ -1492,6 +1662,12 @@ if isfield(Data,'GTStallingMatrix')
         Data.AutoStallingMatrix(seg_no,:) == 1;
 end
 updateStallandFrame(handles, 'Prev')
+
+% --- Executes during object creation, after setting all properties.
+function text_NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to text_NumofFilteredValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
 
 
 % --- Executes on key press with focus on figure1 and none of its controls.
