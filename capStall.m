@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 04-May-2022 03:49:59
+% Last Modified by GUIDE v2.5 04-May-2022 04:20:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -188,7 +188,7 @@ end
 hold off
 set(h, 'ButtonDownFcn', {@axes1_ButtonDown, handles},'BusyAction','cancel');
 set(gcf, 'WindowScrollWheelFcn', {@axes_WindowScrollWheelFcn, handles},'Interruptible','off','BusyAction','cancel');
-set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off','BusyAction','cancel');
+% set(gcf, 'WindowKeyPressFcn', {@figure_WindowKeyPressFcn, handles},'Interruptible','off','BusyAction','cancel');
 
 seg_no = str2double(get(handles.edit_segno,'string'));
 frame_no = str2double(get(handles.edit_volnumber,'string'));
@@ -1045,8 +1045,6 @@ global Data;
 handles.checkbox_Axe1displayCurrentSegment.Value = 0;
 delete(handles.axes3.Children)
 delete(handles.axes4.Children)
-delete(handles.axes5.Children)
-delete(handles.axes6.Children)
 
 [filename, pathname] = uigetfile;
 if filename == 0
@@ -1437,7 +1435,6 @@ function makeSegLengthHistogram(handles)
     handles.axes4.XAxis.TickValues = 0:5:max(pixelLength)+2;
     handles.axes4.YAxis.Label.String = 'Num of Capillary';
     handles.axes4.YAxis.FontWeight = 'Bold';
-    updateSegQualityLength(handles.axes4,str2num(handles.edit_pixelCutofflengthValue.String)+1,'r')
     handles.text_NumofFilteredValue.String = num2str(sum(pixelLength <= str2num(handles.edit_pixelCutofflengthValue.String)));
     grid on
     Data.segAnalysis.cutoff = str2num(handles.edit_pixelCutofflengthValue.String);
@@ -1972,9 +1969,10 @@ function edit_VFlag_End_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit_VFlag_End (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
