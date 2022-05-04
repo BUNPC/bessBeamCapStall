@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 04-May-2022 03:22:50
+% Last Modified by GUIDE v2.5 04-May-2022 03:49:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1894,15 +1894,87 @@ else
 end
 
 
-% --- Executes on button press in pushbutton_Unset_GT.
-function pushbutton_Unset_GT_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton_Unset_GT (see GCBO)
+
+function edit_GTStartFrame_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_GTStartFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_GTStartFrame as text
+%        str2double(get(hObject,'String')) returns contents of edit_GTStartFrame as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_GTStartFrame_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_GTStartFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_GTEndFrame_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_GTEndFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_GTEndFrame as text
+%        str2double(get(hObject,'String')) returns contents of edit_GTEndFrame as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_GTEndFrame_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_GTEndFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton_unsetGT.
+function pushbutton_unsetGT_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_unsetGT (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in pushbutton_Set_GT.
-function pushbutton_Set_GT_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton_Set_GT (see GCBO)
+% --- Executes on button press in pushbutton_setGT.
+function pushbutton_setGT_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_setGT (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_VFlag_Start_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_VFlag_Start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_VFlag_End_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_VFlag_End (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
