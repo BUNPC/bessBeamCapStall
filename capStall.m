@@ -1418,7 +1418,6 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
             makeSegLengthHistogram(handles);
         end
     end
-    checkData();
 else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
@@ -2569,19 +2568,4 @@ function pushbutton_RestoreKeyDefault_Callback(hObject, eventdata, handles)
     handles.edit_MarkQuestionableKey.String = 'L';
     disp("Keyboard Shortcuts are restored!")
     
-    
-function checkData()  
-    global Data
-    if ~isequal(Data.ValidationFlag,1-Data.AutoStallingMatrix)
-        fig1 = figure(1);
-            h1 = imagesc(Data.ValidationFlag);
-            title('ValidationFlag')
-        fig2 = figure(2);
-            h2 = imagesc(1-Data.AutoStallingMatrix);
-            title('AutoStallingMatrix')
-        error('ValidationFlag is different from AutoStallingMatrix. Please check before proceed.')
-    else
-        disp("Total Un-valitated Stalling Incidents: "...
-            + num2str(sum(sum(Data.ValidationFlag == 0))))
-    end
     
