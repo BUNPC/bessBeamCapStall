@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 04-May-2022 16:31:27
+% Last Modified by GUIDE v2.5 09-May-2022 00:56:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -287,7 +287,7 @@ if isfield(Data,'seg')
             if isfield(Data.seg,'pos')
                 hold on
                 if isfield(Data.seg(seg_no),'frame_seg_pos')
-                    plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',16);
+                    plot(Data.seg(seg_no).frame_seg_pos(:,2,frame_no),Data.seg(seg_no).frame_seg_pos(:,1,frame_no),'r.','markersize',3,'Marker','o');
                 else
                     plot(Data.seg(seg_no).pos(:,1),Data.seg(seg_no).pos(:,2),'r.','markersize',16);
                 end
@@ -320,7 +320,7 @@ if isfield(Data,'seg') && isfield(Data.seg,'LRimage')
     handles.axes3.XTick = [];
     handles.axes3.YTick = linspace(0,350,36);
     y = [ii ii];
-    line(x,y, 'LineWidth', 1, 'Color','white');
+    line(x,y, 'LineWidth', 3, 'Color','r');
     if isfield(Data,'StallingMatrix')
         xidx = find(Data.StallingMatrix(jj,:) == 1);
         yidx = size(Data.seg(jj).LRimage,1)/2*ones(1,length(xidx));
@@ -348,7 +348,6 @@ if isfield(Data,'seg') && isfield(Data.seg,'LRimage')
     hold off
     handles.text_SegLengthDisplay.String = [ num2str(x(2)-x(1)) ' Pixels' ];
     set(handles.axes3, 'ButtonDownFcn', {@axes3_ButtonDownFcn, handles});
-    
 end
 
 Data.handles =  handles;
@@ -1419,12 +1418,15 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
             makeSegLengthHistogram(handles);
         end
     end
+    checkData();
 else
     set(handles.menu_validateStalls,'Checked','off')
     set(handles.uipanel_validationPanel,'Visible','off')
     set(handles.uipanel_GroundTruthControl,'Visible','off')
     delete(handles.axes4.Children)
 end
+
+
 
 function makeSegLengthHistogram(handles)
     global Data
@@ -1669,36 +1671,36 @@ function figure1_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 if isfield(Data,'I')
-    KeyPressed = eventdata.Key;
+    KeyPressed = upper(eventdata.Key);
     if isfield(Data,'seg')
-        if strcmpi(KeyPressed,"a") % Previous Cap
+        if strcmpi(KeyPressed,handles.edit_PreviousCapKey.String) % Previous Cap
             pushbutton_prevseg_Callback(hObject, eventdata, handles);
             disp('Previous Capillary')
         end
 
-        if strcmpi(KeyPressed,"d") % Next Cap
+        if strcmpi(KeyPressed,handles.edit_NextCapKey.String) % Next Cap
             pushbutton_nextseg_Callback(hObject, eventdata, handles);
             disp('Next Capillary')
         end
     end
     
-    if strcmpi(KeyPressed,"leftarrow") % last image
+    if strcmpi(KeyPressed,handles.edit_PreviousImageKey.String) % last image
         pushbutton_moveleft_Callback(hObject, eventdata, handles);
         disp('Previous Image')
     end
 
-    if strcmpi(KeyPressed,"rightarrow") % next image
+    if strcmpi(KeyPressed,handles.edit_NextImageKey.String) % next image
         pushbutton_moveright_Callback(hObject, eventdata, handles);
         disp('Next Image')
     end
     
-    if strcmpi(KeyPressed,"w") % increase upper throshold of contrast
+    if strcmpi(KeyPressed,handles.edit_IncreaseMaxKey.String) % increase upper throshold of contrast
         handles.edit_MaxI.String = num2str(str2double(handles.edit_MaxI.String) + 100);
         edit_MaxI_Callback(hObject, eventdata, handles);
         disp('Increase Max Threshold')
     end
     
-    if strcmpi(KeyPressed,"s") % decrease upper throshold of contrast
+    if strcmpi(KeyPressed,handles.edit_DecreaseMaxKey.String) % decrease upper throshold of contrast
         handles.edit_MaxI.String = num2str(str2double(handles.edit_MaxI.String) - 100);
         edit_MaxI_Callback(hObject, eventdata, handles);
         disp('Decrease Max Threshold')
@@ -1706,27 +1708,27 @@ if isfield(Data,'I')
 
     % Validation Use
     if ~strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
-        if strcmpi(KeyPressed,"uparrow") % Prev
+        if strcmpi(KeyPressed,handles.edit_PreviousCaseKey.String) % Prev
             pushbutton_prevStallforVerification_Callback(hObject, eventdata, handles);
             disp('Previous Case for validation')
         end
 
-        if strcmpi(KeyPressed,"downarrow") % Next
+        if strcmpi(KeyPressed,handles.edit_NextCaseKey.String) % Next
             pushbutton_nextStallforVerification_Callback(hObject, eventdata, handles);
             disp('Next Case for validation')
         end
         
-        if strcmpi(KeyPressed,"j") % Stall
+        if strcmpi(KeyPressed,handles.edit_MarkStallKey.String) % Stall
             pushbutton_isaStall_Callback(hObject, eventdata, handles)
             disp('Select Stall')
         end
         
-        if strcmpi(KeyPressed,"k") % Non-Stall
+        if strcmpi(KeyPressed,handles.edit_MarkNotStallKey.String) % Non-Stall
             pushbutton_notaStall_Callback(hObject, eventdata, handles)
             disp('Select Non-Stall')
         end
         
-        if strcmpi(KeyPressed,"l") % Questionable
+        if strcmpi(KeyPressed,handles.edit_MarkQuestionableKey.String) % Questionable
             pushbutton_Questionable_Callback(hObject, eventdata, handles)
             disp('Select Questionable')
         end
@@ -1943,3 +1945,643 @@ else
     end
     updateStallandFrame(handles, 'Next')
 end
+
+
+
+function edit_PreviousCap_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousCap as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousCap as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousCap_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextCap_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextCap as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextCap as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextCap_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit26_Callback(hObject, eventdata, handles)
+% hObject    handle to edit26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit26 as text
+%        str2double(get(hObject,'String')) returns contents of edit26 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit26_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit27_Callback(hObject, eventdata, handles)
+% hObject    handle to edit27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit27 as text
+%        str2double(get(hObject,'String')) returns contents of edit27 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit27_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit44_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousCap as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousCap as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit44_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit45_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextCap as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextCap as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit45_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextCap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_PreviousImage_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousImage (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousImage as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousImage as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousImage_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousImage (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextImage_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextImage (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextImage as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextImage as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextImage_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextImage (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_IncreaseMax_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_IncreaseMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_IncreaseMax as text
+%        str2double(get(hObject,'String')) returns contents of edit_IncreaseMax as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_IncreaseMax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_IncreaseMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_DecreaseMax_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_DecreaseMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_DecreaseMax as text
+%        str2double(get(hObject,'String')) returns contents of edit_DecreaseMax as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_DecreaseMax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_DecreaseMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_PreviousCase_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousCase as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousCase as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousCase_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextCase_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextCase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextCase as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextCase as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextCase_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextCase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkStall_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkStall as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkStall as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkStall_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkNotStall_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkNotStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkNotStall as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkNotStall as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkNotStall_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkNotStall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkQuestionable_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkQuestionable (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkQuestionable as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkQuestionable as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkQuestionable_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkQuestionable (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+    
+    
+    
+
+
+
+function edit_PreviousCapKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCapKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousCapKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousCapKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousCapKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCapKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextCapKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextCapKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextCapKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextCapKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextCapKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextCapKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_PreviousImageKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousImageKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousImageKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousImageKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousImageKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousImageKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextImageKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextImageKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextImageKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextImageKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextImageKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextImageKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_IncreaseMaxKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_IncreaseMaxKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_IncreaseMaxKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_IncreaseMaxKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_IncreaseMaxKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_IncreaseMaxKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_DecreaseMaxKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_DecreaseMaxKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_DecreaseMaxKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_DecreaseMaxKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_DecreaseMaxKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_DecreaseMaxKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_PreviousCaseKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCaseKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_PreviousCaseKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_PreviousCaseKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_PreviousCaseKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_PreviousCaseKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_NextCaseKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_NextCaseKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_NextCaseKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_NextCaseKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_NextCaseKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_NextCaseKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkStallKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkStallKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkStallKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkStallKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkStallKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkStallKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkNotStallKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkNotStallKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkNotStallKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkNotStallKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkNotStallKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkNotStallKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_MarkQuestionableKey_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_MarkQuestionableKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_MarkQuestionableKey as text
+%        str2double(get(hObject,'String')) returns contents of edit_MarkQuestionableKey as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_MarkQuestionableKey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_MarkQuestionableKey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton_RestoreKeyDefault.
+function pushbutton_RestoreKeyDefault_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_RestoreKeyDefault (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    handles.edit_PreviousCapKey.String = 'A';
+    handles.edit_NextCapKey.String = 'D';
+    handles.edit_PreviousImageKey.String = 'LEFTARROW';
+    handles.edit_NextImageKey.String = 'RIGHTARROW';
+    handles.edit_IncreaseMaxKey.String = 'W';
+    handles.edit_DecreaseMaxKey.String = 'S';
+    handles.edit_PreviousCaseKey.String = 'UPARROW';
+    handles.edit_NextCaseKey.String = 'DOWNARROW';
+    handles.edit_MarkStallKey.String = 'K';
+    handles.edit_MarkNotStallKey.String = 'J';
+    handles.edit_MarkQuestionableKey.String = 'L';
+    disp("Keyboard Shortcuts are restored!")
+    
+    
+function checkData()  
+    global Data
+    if ~isequal(Data.ValidationFlag,1-Data.AutoStallingMatrix)
+        fig1 = figure(1);
+            h1 = imagesc(Data.ValidationFlag);
+            title('ValidationFlag')
+        fig2 = figure(2);
+            h2 = imagesc(1-Data.AutoStallingMatrix);
+            title('AutoStallingMatrix')
+        error('ValidationFlag is different from AutoStallingMatrix. Please check before proceed.')
+    else
+        disp("Total Un-valitated Stalling Incidents: "...
+            + num2str(sum(sum(Data.ValidationFlag == 0))))
+    end
+    
