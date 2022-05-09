@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 09-May-2022 00:56:45
+% Last Modified by GUIDE v2.5 09-May-2022 17:01:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -967,6 +967,7 @@ jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj-1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
 draw(hObject, eventdata, handles);
+updateCrossCorrDisp(handles,jj);
 
 
 % --- Executes on button press in pushbutton_nextseg.
@@ -980,6 +981,8 @@ jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj+1,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
 draw(hObject, eventdata, handles);
+updateCrossCorrDisp(handles, jj);
+
 
 % --- Executes on button press in radiobutton_showseg.
 function radiobutton_showseg_Callback(hObject, eventdata, handles)
@@ -1416,6 +1419,7 @@ if strcmpi(get(handles.menu_validateStalls,'Checked'), 'off')
             updateStallandFrame(handles, 'NextorCurrent');
             draw(hObject, eventdata, handles);
             makeSegLengthHistogram(handles);
+            updateCrossCorrDisp(handles,str2num(handles.edit_segno.String));
         end
     end
 else
@@ -1423,6 +1427,7 @@ else
     set(handles.uipanel_validationPanel,'Visible','off')
     set(handles.uipanel_GroundTruthControl,'Visible','off')
     delete(handles.axes4.Children)
+    delete(handles.axes5.Children)
 end
 
 
@@ -1445,15 +1450,7 @@ function makeSegLengthHistogram(handles)
     Data.segAnalysis.cutoff = str2num(handles.edit_pixelCutofflengthValue.String);
     Data.segAnalysis.capNum = ind2sub(size(pixelLength),find(pixelLength <=Data.segAnalysis.cutoff));
     
-    for j = 1:length(Data.seg)
-        for i = 1:350
-            oneRow = Data.seg(j).LRimage(:,i);
-            Data.segAnalysis.AveIntensity(j,i) = mean(oneRow);
-            Data.segAnalysis.AveCOV(j,i) = mean(oneRow)/std(oneRow);
-        end
-        Data.segAnalysis.DatasetAveInt(j,1) = mean(Data.segAnalysis.AveIntensity(j,:)/max(Data.segAnalysis.AveIntensity(j,:)));
-        Data.segAnalysis.DatasetAveCOV(j,1) = mean(Data.segAnalysis.AveCOV(j,:)/max(Data.segAnalysis.AveCOV(j,:)));
-    end
+    hold off
     
 
 function updateStallandFrame(handles, mov_dir)
@@ -1652,12 +1649,6 @@ if isfield(Data,'GTStallingMatrix')
    disp("Capillary " + num2str(seg_no) + " has been restored to original!")
 end
 updateStallandFrame(handles, 'Prev')
-
-% --- Executes during object creation, after setting all properties.
-function text_NumofFilteredValue_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to text_NumofFilteredValue (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
 
 % --- Executes on key press with focus on figure1 and none of its controls.
@@ -1981,98 +1972,6 @@ function edit_NextCap_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function edit_NextCap_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_NextCap (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit26_Callback(hObject, eventdata, handles)
-% hObject    handle to edit26 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit26 as text
-%        str2double(get(hObject,'String')) returns contents of edit26 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit26_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit26 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit27_Callback(hObject, eventdata, handles)
-% hObject    handle to edit27 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit27 as text
-%        str2double(get(hObject,'String')) returns contents of edit27 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit27_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit27 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit44_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_PreviousCap (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit_PreviousCap as text
-%        str2double(get(hObject,'String')) returns contents of edit_PreviousCap as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit44_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_PreviousCap (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit45_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_NextCap (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit_NextCap as text
-%        str2double(get(hObject,'String')) returns contents of edit_NextCap as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit45_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit_NextCap (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2567,5 +2466,30 @@ function pushbutton_RestoreKeyDefault_Callback(hObject, eventdata, handles)
     handles.edit_MarkNotStallKey.String = 'J';
     handles.edit_MarkQuestionableKey.String = 'L';
     disp("Keyboard Shortcuts are restored!")
+    
+    
+function updateCrossCorrDisp(handles,seg_no)
+    global Data
+    LRimage = Data.seg(seg_no).LRimage;
+    smoothFactor = 1;
+    threshold = 0.85;
+    Scalefactor = 20;
+    crossCorrVals = correlateLT(LRimage,smoothFactor);
+ 
+    axes(handles.axes5)
+    plot(crossCorrVals*Scalefactor,1:length(crossCorrVals),'Marker','o'...
+         ,'markersize',3,'Color','r','MarkerFaceColor','k')
+    grid on
+    hold on
+    xline(threshold*Scalefactor,'cyan','LineWidth',2)
+    
+    handles.axes5.XLim = [-1,1]*Scalefactor;
+    handles.axes5.XTick = linspace(-1*Scalefactor,1*Scalefactor,9);
+    handles.axes5.XTickLabel = linspace(-1,1,9);
+    handles.axes5.XAxis.FontSize = 8;
+    handles.axes5.YLim = [0,350];
+    handles.axes5.YTick = linspace(0,350,36);
+    handles.axes5.YAxis.Direction = 'reverse';
+    hold off
     
     
