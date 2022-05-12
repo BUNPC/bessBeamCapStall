@@ -940,6 +940,7 @@ global Data
 jj = str2double(get(handles.edit_segno,'string'));
 jj = min(max(jj,1),length(Data.seg));
 set(handles.edit_segno,'string',num2str(jj));
+updateCrossCorrDisp(handles,jj)
 draw(hObject, eventdata, handles);
 
 
