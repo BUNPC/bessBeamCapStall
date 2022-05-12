@@ -22,7 +22,7 @@ function varargout = capStall(varargin)
 
 % Edit the above text to modify the response to help capStall
 
-% Last Modified by GUIDE v2.5 09-May-2022 17:01:07
+% Last Modified by GUIDE v2.5 11-May-2022 20:22:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2189,13 +2189,8 @@ function edit_MarkQuestionable_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
     
     
-    
-
-
 
 function edit_PreviousCapKey_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_PreviousCapKey (see GCBO)
@@ -2492,4 +2487,22 @@ function updateCrossCorrDisp(handles,seg_no)
     handles.axes5.YAxis.Direction = 'reverse';
     hold off
     
-    
+
+% --- Executes on button press in pushbutton_ConfirmValidation.
+function pushbutton_ConfirmValidation_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_ConfirmValidation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Data
+seg_no = str2double(get(handles.edit_segno,'string'));
+if isfield(Data,'ValidationFlag')
+    Data.ValidationFlag(seg_no,:) = 1;
+    disp("Capillary " + num2str(seg_no) + " has been validated.");
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function pushbutton_ConfirmValidation_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton_ConfirmValidation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
