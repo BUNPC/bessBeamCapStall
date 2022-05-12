@@ -1492,6 +1492,7 @@ if ~isempty(possible_idx)
         set(handles.edit_segno,'string',num2str(seg_no))
         set(handles.edit_volnumber,'string',num2str(frame_no))
         set(handles.slider_movedata,'Value',frame_no);
+        updateCrossCorrDisp(handles,seg_no);
         (handles);
         draw([], [], handles);
     end
@@ -2457,8 +2458,8 @@ function pushbutton_RestoreKeyDefault_Callback(hObject, eventdata, handles)
     handles.edit_DecreaseMaxKey.String = 'S';
     handles.edit_PreviousCaseKey.String = 'UPARROW';
     handles.edit_NextCaseKey.String = 'DOWNARROW';
-    handles.edit_MarkStallKey.String = 'K';
-    handles.edit_MarkNotStallKey.String = 'J';
+    handles.edit_MarkStallKey.String = 'J';
+    handles.edit_MarkNotStallKey.String = 'K';
     handles.edit_MarkQuestionableKey.String = 'L';
     disp("Keyboard Shortcuts are restored!")
     
@@ -2498,6 +2499,7 @@ seg_no = str2double(get(handles.edit_segno,'string'));
 if isfield(Data,'ValidationFlag')
     Data.ValidationFlag(seg_no,:) = 1;
     disp("Capillary " + num2str(seg_no) + " has been validated.");
+    updateStallandFrame(handles, 'Next')
 end
 
 
